@@ -7,6 +7,12 @@ const app = express()
 const mongoose = require('mongoose'); 
 const bodyParser = require('body-parser'); 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve tesing on postman
+const cors = require("cors");//added recently to help the backend connect to the front-end
+
+app.use(cors());//needed to execute cors
+
+
 
 
 connectDB()//conncts our atlis cluster
