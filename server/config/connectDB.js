@@ -12,5 +12,7 @@ const connectDB = async () => {
 
 }
 
+// Set strictQuery to false (or true based on your preference)
+mongoose.set('strictQuery', false); // or true
 
 module.exports = connectDB
