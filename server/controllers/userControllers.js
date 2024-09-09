@@ -36,14 +36,15 @@ exports.login = async (req, res) => {
         if (!teamMember) {
             return res.status(404).json({ message: 'User not found' });
         }
-
+        // Compare the password with the stored hashed password
         const isMatch = await bcrypt.compare(password, teamMember.password);
 
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-
+         // Generate a JWT token valid for 1 hour
         const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '1h' });
+        // Send the token and user data as the response
         res.json({ token });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -118,6 +119,34 @@ exports.deleteTask = async (req, res) => {
     }
 };
 
+// Get all team members, their tasks, team info, and performance metrics
+exports.getAllTeamInfo = async (req, res) => {
+    try {
+        // Find the logged-in team member by ID
+        const teamMember = await TeamMember.findById(req.params.id);
+
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        // Find the team they belong to and populate team members
+        const team = await Team.findById(teamMember.teamID).populate('members');
+
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        // Get all team members from the same team, including their tasks and performance metrics
+        const teamMembersInfo = await TeamMember.find({ teamID: team._id })
+            .select('firstName lastName email tasks performanceMetrics teamID')
+            .populate('teamID', 'teamName')  // Populate team information
+            .exec();
+
+        res.json(teamMembersInfo);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const teamMemberController = require('../controllers/userControllers');
 
+
 // Routes for managing team members
 router.post('/register', teamMemberController.createTeamMember);
 router.post('/login', teamMemberController.login);
@@ -9,10 +10,17 @@ router.get('/:id', teamMemberController.getTeamMemberById);
 router.put('/:id', teamMemberController.updateTeamMember);
 router.delete('/:id', teamMemberController.deleteTeamMember);
 
+
+
 // Routes for managing tasks
 router.post('/:id/tasks', teamMemberController.addTask);
 router.put('/:id/tasks/:taskId', teamMemberController.updateTask);
 router.delete('/:id/tasks/:taskId', teamMemberController.deleteTask);
+
+
+// Get all team members with tasks, team info, and performance metrics
+router.get('/:id/team-info', teamMemberController.getAllTeamInfo);
+
 
 module.exports = router;
 
@@ -21,7 +29,7 @@ module.exports = router;
 
 
 
-// const express = require('express'); //common js module syntext 
+// const express = require('express'); //common js module syntax
 // const router = express.Router();
 // const {getUsers, postUser, editUser, deleteUser, getOneUser} = require('../controllers/userControllers')
 
