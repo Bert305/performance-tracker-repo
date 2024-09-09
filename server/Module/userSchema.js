@@ -4,7 +4,8 @@ const TaskSchema = new mongoose.Schema({
     taskName: { type: String, required: true },
     description: { type: String },
     assignedDate: { type: Date, default: Date.now },
-    dueDate: { type: Date }
+    dueDate: { type: Date },
+    complexity: { type: Number, required: true }
 });
 
 const PerformanceMetricSchema = new mongoose.Schema({
