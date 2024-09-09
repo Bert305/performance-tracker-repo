@@ -10,7 +10,7 @@ router.get('/:id', teamMemberController.getTeamMemberById);
 router.put('/:id', teamMemberController.updateTeamMember);
 router.delete('/:id', teamMemberController.deleteTeamMember);
 
-
+router.post('/logout', teamMemberController.logout);
 
 // Routes for managing tasks
 router.post('/:id/tasks', teamMemberController.addTask);

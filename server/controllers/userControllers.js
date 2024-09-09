@@ -148,6 +148,13 @@ exports.getAllTeamInfo = async (req, res) => {
     }
 };
 
+// Logout team member
+exports.logout = (req, res) => {
+    // Clear the token from the client-side
+    res.clearCookie('token');
+    res.json({ message: 'Logout successful' });
+};
+
 
 
 // const User = require('../Module/userSchema')
