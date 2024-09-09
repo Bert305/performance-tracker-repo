@@ -11,8 +11,20 @@ app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve t
 const cors = require("cors");//added recently to help the backend connect to the front-end
 const userRoutes = require('./routes/teamRoutes.js');
 const teamRoutes = require('./routes/userRoutes.js');
+// const pug = require('pug');//added recently to help with rendering
+// const path = require('path');
 
 app.use(cors());//needed to execute cors
+
+// Set Pug as the template engine
+// app.set('view engine', 'pug');
+// app.set('views', path.join(__dirname, 'views'));
+
+// app.get('/sample', (req, res) => {
+//     res.render('sample',
+//         {title : 'Express Pug ', message: 'Pug is a template engine for Express'}
+//     )
+//   })
 
 
 

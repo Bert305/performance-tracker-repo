@@ -19,6 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^6.4.0",
     "nodemon": "2.0.22",
+    "pug": "^3.0.3",
     "server": "file:"
   }
 }
