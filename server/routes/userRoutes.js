@@ -1,25 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const teamMemberController = require('../controllers/userControllers');
+const {createTeamMember, login, getTeamMemberById, updateTeamMember, deleteTeamMember, logout, addTask ,updateTask, deleteTask, getAllTeamInfo, test} = require('../controllers/userControllers');
 
+// Route for testing
+router.get('/test', test);
 
 // Routes for managing team members
-router.post('/register', teamMemberController.createTeamMember);
-router.post('/login', teamMemberController.login);
-router.get('/:id', teamMemberController.getTeamMemberById);
-router.put('/:id', teamMemberController.updateTeamMember);
-router.delete('/:id', teamMemberController.deleteTeamMember);
+router.post('/register', createTeamMember);
+router.post('/login', login);
+router.get('/:id', getTeamMemberById);
+router.put('/:id', updateTeamMember);
+router.delete('/:id', deleteTeamMember);
 
-router.post('/logout', teamMemberController.logout);
+router.post('/logout', logout);
 
 // Routes for managing tasks
-router.post('/:id/tasks', teamMemberController.addTask);
-router.put('/:id/tasks/:taskId', teamMemberController.updateTask);
-router.delete('/:id/tasks/:taskId', teamMemberController.deleteTask);
+router.post('/:id/tasks', addTask);
+router.put('/:id/tasks/:taskId', updateTask);
+router.delete('/:id/tasks/:taskId', deleteTask);
 
 
 // Get all team members with tasks, team info, and performance metrics
-router.get('/:id/team-info', teamMemberController.getAllTeamInfo);
+router.get('/:id/team-info', getAllTeamInfo);
 
 
 module.exports = router;

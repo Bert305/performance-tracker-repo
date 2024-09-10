@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const teamController = require('../controllers/teamController');
-
+const {createTeam, getTeamById, updateTeam, deleteTeam} = require('../controllers/teamController')
 // Routes for managing teams
-router.post('/', teamController.createTeam);
-router.get('/:id', teamController.getTeamById);
-router.put('/:id', teamController.updateTeam);
-router.delete('/:id', teamController.deleteTeam);
+router.post('/', createTeam);
+router.get('/:id', getTeamById);
+router.put('/:id', updateTeam);
+router.delete('/:id',deleteTeam);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const Team = require('../Module/teamSchema');
 
 // Create a new team
-exports.createTeam = async (req, res) => {
+const createTeam = async (req, res) => {
     try {
         const newTeam = new Team(req.body);
         await newTeam.save();
@@ -12,7 +12,7 @@ exports.createTeam = async (req, res) => {
 };
 
 // Get team by ID
-exports.getTeamById = async (req, res) => {
+const getTeamById = async (req, res) => {
     try {
         const team = await Team.findById(req.params.id).populate('members');
         if (!team) return res.status(404).json({ message: 'Team not found' });
@@ -23,7 +23,7 @@ exports.getTeamById = async (req, res) => {
 };
 
 // Update team
-exports.updateTeam = async (req, res) => {
+const updateTeam = async (req, res) => {
     try {
         const updatedTeam = await Team.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedTeam);
@@ -33,7 +33,7 @@ exports.updateTeam = async (req, res) => {
 };
 
 // Delete team
-exports.deleteTeam = async (req, res) => {
+const deleteTeam = async (req, res) => {
     try {
         await Team.findByIdAndDelete(req.params.id);
         res.json({ message: 'Team deleted' });
@@ -41,3 +41,10 @@ exports.deleteTeam = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+module.exports = {
+    createTeam,
+    getTeamById,
+    updateTeam,
+    deleteTeam
+}

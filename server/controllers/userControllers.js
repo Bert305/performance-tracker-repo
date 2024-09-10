@@ -1,10 +1,24 @@
-
 const TeamMember = require('../Module/userSchema');
+const Team = require('../Module/teamSchema');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
+
+
+
+//GET Request -> http://localhost:5000/team-members/test
+const test = (req, res) => {
+    res.send('Test route, Hello World!');
+}
+
+
+
 // Register new team member
-exports.createTeamMember = async (req, res) => {
+//POST Request -> localhost:5000/team-members/register
+
+const createTeamMember = async (req, res) => {
+    console.log(req.body);
     try {
         const { username, password, firstName, lastName, email, image, teamID } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -26,8 +40,11 @@ exports.createTeamMember = async (req, res) => {
     }
 };
 
+
+
+
 // Login team member
-exports.login = async (req, res) => {
+const login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
@@ -52,7 +69,7 @@ exports.login = async (req, res) => {
 };
 
 // Get team member by ID
-exports.getTeamMemberById = async (req, res) => {
+const getTeamMemberById = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id).populate('teamID');
         if (!teamMember) return res.status(404).json({ message: 'Team member not found' });
@@ -63,7 +80,7 @@ exports.getTeamMemberById = async (req, res) => {
 };
 
 // Update team member
-exports.updateTeamMember = async (req, res) => {
+const updateTeamMember = async (req, res) => {
     try {
         const updatedTeamMember = await TeamMember.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedTeamMember);
@@ -73,7 +90,7 @@ exports.updateTeamMember = async (req, res) => {
 };
 
 // Delete team member
-exports.deleteTeamMember = async (req, res) => {
+const deleteTeamMember = async (req, res) => {
     try {
         await TeamMember.findByIdAndDelete(req.params.id);
         res.json({ message: 'Team member deleted' });
@@ -83,7 +100,7 @@ exports.deleteTeamMember = async (req, res) => {
 };
 
 // Add task to team member
-exports.addTask = async (req, res) => {
+const addTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
         teamMember.tasks.push(req.body);
@@ -95,7 +112,7 @@ exports.addTask = async (req, res) => {
 };
 
 // Update task
-exports.updateTask = async (req, res) => {
+const updateTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
         const task = teamMember.tasks.id(req.params.taskId);
@@ -108,7 +125,7 @@ exports.updateTask = async (req, res) => {
 };
 
 // Delete task
-exports.deleteTask = async (req, res) => {
+const deleteTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
         teamMember.tasks.id(req.params.taskId).remove();
@@ -120,7 +137,7 @@ exports.deleteTask = async (req, res) => {
 };
 
 // Get all team members, their tasks, team info, and performance metrics
-exports.getAllTeamInfo = async (req, res) => {
+const getAllTeamInfo = async (req, res) => {
     try {
         // Find the logged-in team member by ID
         const teamMember = await TeamMember.findById(req.params.id);
@@ -149,13 +166,25 @@ exports.getAllTeamInfo = async (req, res) => {
 };
 
 // Logout team member
-exports.logout = (req, res) => {
+const logout = (req, res) => {
     // Clear the token from the client-side
     res.clearCookie('token');
     res.json({ message: 'Logout successful' });
 };
 
-
+module.exports = {
+    test,
+    login,
+    createTeamMember,
+    getTeamMemberById,
+    updateTeamMember,
+    deleteTeamMember,
+    logout,
+    addTask,
+    updateTask,
+    deleteTask,
+    getAllTeamInfo
+}
 
 // const User = require('../Module/userSchema')
 

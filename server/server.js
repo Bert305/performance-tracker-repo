@@ -3,18 +3,17 @@ const colors =require('colors')
 const dotenv = require('dotenv').config()//allows to use dotenv
 const connectDB = require('./config/connectDB.js')
 const port = process.env.PORT || 5000 
-const app = express() 
-const mongoose = require('mongoose'); 
-const bodyParser = require('body-parser'); 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve tesing on postman
+const app = express() //creates an instance of express
+
 const cors = require("cors");//added recently to help the backend connect to the front-end
-const userRoutes = require('./routes/teamRoutes.js');
-const teamRoutes = require('./routes/userRoutes.js');
+const teamRoutes= require('./routes/teamRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
 // const pug = require('pug');//added recently to help with rendering
 // const path = require('path');
 
-app.use(cors());//needed to execute cors
+
+
+
 
 // Set Pug as the template engine
 // app.set('view engine', 'pug');
@@ -29,13 +28,20 @@ app.use(cors());//needed to execute cors
 
 
 
-connectDB()//connects our atlis cluster
+connectDB()//connects our Atlas cluster
 
-
+app.use(cors());//needed to execute cors
+const bodyParser = require('body-parser'); 
+app.use(bodyParser.json()); 
+app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve testing on postman
 //allows us to connect our middleware to our routs.js file
 // const myRoutes = require('./routes/userRoutes.js')
 // //middle-ware-routs
 // app.use('/api/user', myRoutes)
+
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+  });
 
 app.use('/team-members', userRoutes);
 app.use('/teams', teamRoutes);
