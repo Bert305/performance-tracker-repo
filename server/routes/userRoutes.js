@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, logout, addTask, updateTask, deleteTask, getAllTeamInfo} = require('../controllers/userControllers')
+const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, addPerformanceMetrics, logout, addTask, updateTask, deleteTask, getAllTeamInfo} = require('../controllers/userControllers')
 
 // Route for testing
 router.get('/test', test);
@@ -18,6 +18,9 @@ router.post('/logout', logout);
 router.post('/:id/tasks', addTask);
 router.put('/:id/tasks/:taskId', updateTask);
 router.delete('/:id/tasks/:taskId', deleteTask);
+
+// Add performance metrics for a specific team member
+router.put('/:id/performance-metrics', addPerformanceMetrics);
 
 
 // Get all team members with tasks, team info, and performance metrics

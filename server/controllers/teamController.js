@@ -1,6 +1,14 @@
 const Team = require('../Module/teamSchema');
 
+
+
 // Create a new team
+// POST Request -> http://localhost:5000/teams
+
+// Body for Postman
+// {
+//     "teamName": "Development Team"
+// }
 const createTeam = async (req, res) => {
     try {
         const newTeam = new Team(req.body);
@@ -10,6 +18,25 @@ const createTeam = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+//NOTE -> To assign a user a team, you can use the put request and update the User adding the teamID field in the user schema
+
+// Example to add a team to a user
+
+// PUT Request -> http://localhost:5000/team-members/:id
+
+// Body for Postman
+
+// {
+//     "username": "john_doe",
+//     "password": "password123",
+//     "firstName": "John",
+//     "lastName": "Doe",
+//     "email": "john.doe@example.com",
+//     "image": "http://example.com/profile.png",      // Image URL
+//     "teamID": "64ebbc0b3d7d933b89a0f7d2"        // Team ID
+// }
+
+
 
 // Get team by ID
 const getTeamById = async (req, res) => {

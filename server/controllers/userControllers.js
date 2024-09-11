@@ -15,8 +15,17 @@ const test = (req, res) => {
 
 
 // Register new team member
-//POST Request -> localhost:5000/team-members/register
+//POST Request -> http://localhost:5000/team-members/register
 
+// Body for Postman
+// {
+//     "username": "john_doe",
+//     "password": "password123",
+//     "firstName": "John",
+//     "lastName": "Doe",
+//     "email": "john.doe@example.com",
+//     "image": "http://example.com/profile.png"
+// }
 const createTeamMember = async (req, res) => {
     console.log(req.body);
     try {
@@ -32,7 +41,6 @@ const createTeamMember = async (req, res) => {
             image,
             teamID
         });
-
         await newTeamMember.save();
         res.status(201).json(newTeamMember);
     } catch (error) {
@@ -44,6 +52,13 @@ const createTeamMember = async (req, res) => {
 
 
 // Login team member
+// POST Request -> http://localhost:5000/team-members/login
+
+// Body for Postman
+// {
+//     "username": "john_doe",
+//     "password": "password123"
+// }
 const login = async (req, res) => {
     const { username, password } = req.body;
 
@@ -59,8 +74,8 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-         // Generate a JWT token valid for 1 hour
-        const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '1h' });
+         // Generate a JWT token valid for 24 hour
+        const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '24h' });
         // Send the token and user data as the response
         res.json({ token });
     } catch (error) {
@@ -69,6 +84,7 @@ const login = async (req, res) => {
 };
 
 // Get team member by ID
+// GET Request -> http://localhost:5000/team-members/:id
 const getTeamMemberById = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id).populate('teamID');
@@ -80,6 +96,7 @@ const getTeamMemberById = async (req, res) => {
 };
 
 // Update team member
+// PUT Request -> http://localhost:5000/team-members/:id
 const updateTeamMember = async (req, res) => {
     try {
         const updatedTeamMember = await TeamMember.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -90,6 +107,7 @@ const updateTeamMember = async (req, res) => {
 };
 
 // Delete team member
+// DELETE Request -> http://localhost:5000/team-members/:id
 const deleteTeamMember = async (req, res) => {
     try {
         await TeamMember.findByIdAndDelete(req.params.id);
@@ -100,6 +118,14 @@ const deleteTeamMember = async (req, res) => {
 };
 
 // Add task to team member
+// POST Request -> http://localhost:5000/team-members/:id/tasks
+
+// Body for Postman
+// { "taskName": "Design API",
+// "description": "Design and implement the REST API for the project",
+// "assignedDate": "2024-09-01T00:00:00.000Z",
+// "dueDate": "2024-09-15T00:00:00.000Z",
+// "complexity": 5 }
 const addTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
@@ -112,6 +138,7 @@ const addTask = async (req, res) => {
 };
 
 // Update task
+// PUT Request -> http://localhost:5000/team-members/:id/tasks/:taskId
 const updateTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
@@ -125,12 +152,48 @@ const updateTask = async (req, res) => {
 };
 
 // Delete task
+// DELETE Request -> http://localhost:5000/team-members/:id/tasks/:taskId
 const deleteTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
         teamMember.tasks.id(req.params.taskId).remove();
         await teamMember.save();
         res.json({ message: 'Task removed' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Add performance metrics
+// PUT Request -> http://localhost:5000/team-members/:id/performance-metrics
+
+// Body for Postman
+// { "performanceMetrics": { "qualityScore": 8, "quantityScore": 7, "overallScore": 7.5 } }
+const addPerformanceMetrics = async (req, res) => {
+    try {
+        // Find the team member by their ID
+        const teamMember = await TeamMember.findById(req.params.id);
+
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        // Update performance metrics
+        const { performanceMetrics } = req.body;
+
+        if (!performanceMetrics) {
+            return res.status(400).json({ message: 'Performance metrics are required' });
+        }
+
+        teamMember.performanceMetrics = performanceMetrics;
+
+        // Save the updated team member document
+        await teamMember.save();
+
+        res.status(200).json({
+            message: 'Performance metrics updated successfully',
+            performanceMetrics: teamMember.performanceMetrics
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -166,6 +229,7 @@ const getAllTeamInfo = async (req, res) => {
 };
 
 // Logout team member
+// POST Request -> http://localhost:5000/team-members/logout
 const logout = (req, res) => {
     // Clear the token from the client-side
     res.clearCookie('token');
@@ -183,6 +247,7 @@ module.exports = {
     addTask,
     updateTask,
     deleteTask,
+    addPerformanceMetrics,
     getAllTeamInfo
 }
 
