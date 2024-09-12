@@ -74,8 +74,8 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-         // Generate a JWT token valid for 24 hour
-        const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '24h' });
+         // Generate a JWT token valid for 72 hour
+        const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '72h' });
         // Send the token and user data as the response
         res.json({ token });
     } catch (error) {
@@ -123,7 +123,7 @@ const deleteTeamMember = async (req, res) => {
 // Body for Postman
 // { "taskName": "Design API",
 // "description": "Design and implement the REST API for the project",
-// "assignedDate": "2024-09-01T00:00:00.000Z",
+// "assignedDate": "2024-09-01T00:00:00.000Z", year-month-date
 // "dueDate": "2024-09-15T00:00:00.000Z",
 // "complexity": 5 }
 const addTask = async (req, res) => {
@@ -200,6 +200,7 @@ const addPerformanceMetrics = async (req, res) => {
 };
 
 // Get all team members, their tasks, team info, and performance metrics
+// GET Request -> http://localhost:5000/team-members/:id/all-info
 const getAllTeamInfo = async (req, res) => {
     try {
         // Find the logged-in team member by ID
