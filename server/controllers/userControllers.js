@@ -199,8 +199,8 @@ const addPerformanceMetrics = async (req, res) => {
     }
 };
 
-// Get all team members, their tasks, team info, and performance metrics
-// GET Request -> http://localhost:5000/team-members/:id/all-info
+// Get all team members, their tasks, image, team info, and performance metrics
+// GET Request -> http://localhost:5000/team-members/:id/team-info
 const getAllTeamInfo = async (req, res) => {
     try {
         // Find the logged-in team member by ID
@@ -219,7 +219,7 @@ const getAllTeamInfo = async (req, res) => {
 
         // Get all team members from the same team, including their tasks and performance metrics
         const teamMembersInfo = await TeamMember.find({ teamID: team._id })
-            .select('firstName lastName email tasks performanceMetrics teamID')
+            .select('firstName lastName email image tasks performanceMetrics teamID')
             .populate('teamID', 'teamName')  // Populate team information
             .exec();
 
