@@ -32,6 +32,13 @@ app.get('/login-pug', (req, res) => {
     message: 'This is another sample page'
   });
 });
+app.get('/create-tasks-pug', (req, res) => {
+  res.render('create-tasks.pug', {
+    title: 'Express Pug',
+    message: 'This is another sample page'
+  });
+});
+
 app.get('/dashboard-pug', async (req, res) => {
   try {
     const users = await User.find(); // Fetch user data from the database
