@@ -1,0 +1,142 @@
+doctype html
+html
+    head
+        title Dashboard
+        link(rel='stylesheet', href='../stylesheets/style.css')
+    body
+        .centered-content
+            header
+                h1 User Dashboard
+            main
+                if users.length
+                    table
+                        thead
+                            tr
+                                th User Name
+                                th Full Name
+                                th Email
+                                th Task Details
+                            
+                        tbody
+                            each user in users
+                                tr
+                                    td= user.username
+                                    td= user.firstName + ' ' + user.lastName
+                                    td= user.email
+                                    td
+                                        if user.tasks.length
+                                            table
+                                                thead
+                                                    tr
+                                                        th Task Name
+                                                        th Description
+                                                        th Assigned Date
+                                                        th Due Date
+                                                        th Complexity
+                                                tbody
+                                                    each task in user.tasks
+                                                        tr
+                                                            td= task.taskName
+                                                            td= task.description
+                                                            td= task.assignedDate
+                                                            td= task.dueDate
+                                                            td= task.complexity
+                                        else
+                                            p No tasks assigned.
+                                    td
+                                        if user.performanceMetrics
+                                            table
+                                                thead
+                                                    tr
+                                                        th Quality Score
+                                                        th Quantity Score
+                                                        th Overall Score
+                                                tbody
+                                                    each metric, value in user.performanceMetrics
+                                                        tr
+                                                            td= metric.qualityScore
+                                                            td= metric.quantityScore
+                                                            td= metric.overallScore
+                                                            
+                                        else
+                                            p No performance metrics available.
+                else
+                    p No users found.
+                
+                if teams.length
+                    h2 Teams
+                    table
+                        thead
+                            tr
+                                th Team Name
+                        tbody
+                            each team in teams
+                                tr
+                                    td= team.teamName
+                else
+                    p No teams available.
+
+    //-   footer
+    //-     p Total Users: #{users.length}
+    //-     p Registered Users: #{registeredUsers.length}
+    //-     p Logged In Users: #{loggedInUsers.length}
+
+    //- ------------------------------------------------------------
+
+//- doctype html
+//- html
+//-     head
+//-         title Dashboard
+//-         link(rel='stylesheet', href='/stylesheets/style.css')
+//-     body
+//-         header
+//-             h1 User Dashboard
+//-         main
+//-             if users.length
+//-                 table
+//-                     thead
+//-                         tr
+//-                             th User Name
+//-                             th Name
+//-                             th Email
+
+                           
+                    
+//-                     tbody
+//-                         each user in users
+//-                             tr
+//-                                 td= user.username
+//-                                 td= user.firstName + ' ' + user.lastName
+//-                                 td= user.email
+//-                                 td
+//-                                     table
+//-                                         thead
+//-                                             tr
+//-                                                 th Task Name
+//-                                                 th Description
+//-                                                 th Assigned Date
+//-                                                 th Due Date
+//-                                                 th Complexity
+//-                                         tbody
+//-                                             each task in user.tasks
+//-                                                 tr
+//-                                                     td= task.taskName
+//-                                                     td= task.description
+//-                                                     td= task.assignedDate
+//-                                                     td= task.dueDate
+//-                                                     td= task.complexity
+                               
+
+//-                     tbody
+//-                         each team in teams 
+//-                             tr
+//-                             th Team Name
+//-                                 td= team.teamName
+                               
+                               
+//-             else
+//-                 p No users found.
+//-                 footer
+//-                     p Total Users: #{users.length}
+//-                     p Registered Users: #{registeredUsers.length}
+//-                     p Logged In Users: #{loggedInUsers.length}

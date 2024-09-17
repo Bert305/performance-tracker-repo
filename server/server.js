@@ -14,26 +14,48 @@ const path = require('path');
 // Set Pug as the template engine
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-app.get('/sample', (req, res) => {
+app.get('/sample-pug', (req, res) => {
   res.render('sample.pug', {
     title: 'Express Pug',
     message: 'Pug is a template engine for Express'
   });
 });
-app.get('/sample2', (req, res) => {
+app.get('/register-pug', (req, res) => {
   res.render('register.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });
 });
+app.get('/login-pug', (req, res) => {
+  res.render('login.pug', {
+    title: 'Express Pug',
+    message: 'This is another sample page'
+  });
+});
+app.get('/dashboard-pug', async (req, res) => {
+  try {
+    const users = await User.find(); // Fetch user data from the database
 
+    const teams = await Team.find(); // Fetch team data from the database
 
+    res.render('dashboard.pug', {
+      title: 'Express Pug',
+      message: 'This is another sample page',
+      users: users, // Pass user data to the template
+      teams: teams  // Pass team data to the template
+    });
+  } catch (error) {
+    res.status(500).send('Error fetching user data');
+  }
+});
 
 
 connectDB()//connects our Atlas cluster
 
 app.use(cors());//needed to execute cors
 const bodyParser = require('body-parser'); 
+const User = require('./Module/userSchema.js'); // Adjust the path as necessary
+const Team = require('./Module/teamSchema.js'); // Adjust the path as necessary
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve testing on postman
 //allows us to connect our middleware to our routs.js file
