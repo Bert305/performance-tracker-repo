@@ -15,6 +15,7 @@ html
                                 th User Name
                                 th Full Name
                                 th Email
+                                th Image
                                 th Task Details
                             
                         tbody
@@ -23,6 +24,11 @@ html
                                     td= user.username
                                     td= user.firstName + ' ' + user.lastName
                                     td= user.email
+                                    td
+                                        if user.image
+                                            img(src=user.image, alt='User Image', width='50', height='50')
+                                        else
+                                            p No image available
                                     td
                                         if user.tasks.length
                                             table
