@@ -1,33 +1,44 @@
-//- I want to be able to create tasks using a form in Pug. The form should include fields for task name, description, assigned date, due date, and complexity. Once the form is submitted, it should send a POST request to the server to create the task.
-form(action="/tasks" method="POST")
-    div
-        label(for="taskName") Task Name:
-        input(type="text" id="taskName" name="taskName" required)
-    div
-        label(for="description") Description:
-        textarea(id="description" name="description" required)
-    div
-        label(for="assignedDate") Assigned Date:
-        input(type="date" id="assignedDate" name="assignedDate" required)
-    div
-        label(for="dueDate") Due Date:
-        input(type="date" id="dueDate" name="dueDate" required)
-    div
-        label(for="complexity") Complexity:
-        input(type="number" id="complexity" name="complexity" min="1" max="10" required)
-    div
-        button(type="submit") Create Task
+doctype html
+html
+    head
+        title Task and Metrics Form
+        script.
+            function calculateOverallScore() {
+                const qualityScore = parseFloat(document.getElementById('qualityScore').value);
+                const quantityScore = parseFloat(document.getElementById('quantityScore').value);
+                const complexity = parseFloat(document.getElementById('complexity').value);
+                const overallScore = qualityScore / (1 + Math.abs(complexity - quantityScore));
+                document.getElementById('overallScore').value = overallScore.toFixed(2);
+            }
+    body
+        form(action="/tasks" method="POST")
+            div
+                label(for="taskName") Task Name:
+                input(type="text" id="taskName" name="taskName" required)
+            div
+                label(for="description") Description:
+                textarea(id="description" name="description" required)
+            div
+                label(for="assignedDate") Assigned Date:
+                input(type="date" id="assignedDate" name="assignedDate" required)
+            div
+                label(for="dueDate") Due Date:
+                input(type="date" id="dueDate" name="dueDate" required)
+            div
+                label(for="complexity") Complexity:
+                input(type="number" id="complexity" name="complexity" min="1" max="10" required)
+            div
+                button(type="submit") Create Task
 
-        //- I want to be able to create metrics using a form in Pug. The form should include fields for qualityScore, quantityScore, and overallScore. This should be a put request to the server to create the metrics.
-        form(action="/metrics" method="POST")
+        form(action="/metrics" method="POST" onsubmit="calculateOverallScore()")
             div
                 label(for="qualityScore") Quality Score:
-                input(type="number" id="qualityScore" name="qualityScore" min="1" max="10" required)
+                input(type="number" id="qualityScore" name="qualityScore" min="1" max="100" required)
             div
                 label(for="quantityScore") Quantity Score:
                 input(type="number" id="quantityScore" name="quantityScore" min="1" max="10" required)
             div
                 label(for="overallScore") Overall Score:
-                input(type="number" id="overallScore" name="overallScore" min="1" max="10" required)
+                input(type="number" id="overallScore" name="overallScore" min="1" max="100" readonly required)
             div
                 button(type="submit") Create Metrics
