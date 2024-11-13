@@ -4,7 +4,7 @@ const dotenv = require('dotenv').config()//allows to use dotenv
 const connectDB = require('./config/connectDB.js')
 const port = process.env.PORT || 5000 
 const app = express() //creates an instance of express
-
+const axios = require('axios');
 const cors = require("cors");//added recently to help the backend connect to the front-end
 const teamRoutes= require('./routes/teamRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
@@ -79,7 +79,106 @@ app.use('/teams', teamRoutes);
 
 
 
+//web-hook end-point
+app.post('/trello-webhook', (req, res) => {
+  
+  // Log the entire payload for inspection
+  console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
+
+  const { action } = req.body;
+
+  // Respond immediately to acknowledge Trello's request
+  res.sendStatus(200);
+
+  // Check if we received an updateCard action with list movement details
+  if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+    const cardId = action.data.card.id;
+    const cardName = action.data.card.name;
+    const fromList = action.data.listBefore.name;
+    const toList = action.data.listAfter.name;
+
+    console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
+  } else {
+    console.log('Received action is not a card movement.');
+  }
+});
+//need a web-hook to get hit by Trello API when a card gets moved from one list to another
+//Create a web-hook to tell Trello to send a request to that end point. Should see console.log(“web hook hit“)
+
+const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
+const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
+const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor a specific list
+
+// Step 1: Create Trello Webhook
+async function createWebhook() {
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'Card Move Webhook',
+      callbackURL: 'https://trello.com/b/vMdaABXZ/internal-performance-tracker/trello-webhook', // replace with your actual URL
+      idModel: BOARD_ID,
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
+
+
+
+
+
+// app.get('/trello-actions', async (req, res) => {
+//   try {
+//     const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error('Error fetching actions:', error.response ? error.response.data : error.message);
+//     res.status(500).send('Error fetching actions');
+//   }
+// });
+
+let cachedActions = [];  // Define a variable to store the actions data
+
+app.get('/trello-actions', async (req, res) => {
+  try {
+    const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    cachedActions = response.data;  // Store data in cachedActions for later use
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching actions:', error.response ? error.response.data : error.message);
+    res.status(500).send('Error fetching actions');
+  }
+});
+
+// Step 2: Access cachedActions data here
+app.get('/use-trello-actions', (req, res) => {
+  // Process or log cached actions data here
+  if (cachedActions.length === 0) {
+    return res.status(404).send("No cached actions data available.");
+  }
+
+  // Example: Log each action's details
+  cachedActions.forEach(action => {
+    if (action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+      const cardName = action.data.card.name;
+      const fromList = action.data.listBefore.name;
+      const toList = action.data.listAfter.name;
+
+      console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
+    }
+  });
+
+  res.send("Cached actions data has been processed.");
+});
+
+
+
+createWebhook();
+
+
+
+
 //port listener
 app.listen(port,()=>{
     console.log(`Our server port ${port} is running!!!!`)
-})
+});
