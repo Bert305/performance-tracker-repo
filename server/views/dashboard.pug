@@ -3,11 +3,46 @@ html
     head
         title Dashboard
         link(rel='stylesheet', href='../stylesheets/style.css')
+        script.
+            function filterUsersAndTeams() {
+                var username = document.getElementById('username').value.toLowerCase();
+                var teamname = document.getElementById('teamname').value.toLowerCase();
+                var users = document.querySelectorAll('tbody tr.user-row');
+                var teams = document.querySelectorAll('tbody tr.team-row');
+
+                users.forEach(function(user) {
+                    var userName = user.querySelector('.username').textContent.toLowerCase();
+                    var teamName = user.querySelector('.teamname').textContent.toLowerCase();
+                    if (userName.includes(username) && teamName.includes(teamname)) {
+                        user.style.display = '';
+                    } else {
+                        user.style.display = 'none';
+                    }
+                });
+
+                teams.forEach(function(team) {
+                    var teamName = team.querySelector('.teamname').textContent.toLowerCase();
+                    if (teamName.includes(teamname)) {
+                        team.style.display = '';
+                    } else {
+                        team.style.display = 'none';
+                    }
+                });
+            }
+
+            function removeUser(button) {
+                var row = button.closest('tr');
+                row.parentNode.removeChild(row);
+            }
     body
         .centered-content
             header
                 h1 User Dashboard
             main
+                input(type='text', id='username', placeholder='Filter by username', oninput='filterUsersAndTeams()')
+                input(type='text', id='teamname', placeholder='Filter by team name', oninput='filterUsersAndTeams()')
+                - var users = users || [];
+                - var teams = teams || [];
                 if users.length
                     table
                         thead
@@ -17,11 +52,12 @@ html
                                 th Email
                                 th Image
                                 th Task Details
-                            
+                                th Team Name
+                                th Actions
                         tbody
                             each user in users
-                                tr
-                                    td= user.username
+                                tr.user-row
+                                    td.username= user.username
                                     td= user.firstName + ' ' + user.lastName
                                     td= user.email
                                     td
@@ -63,9 +99,11 @@ html
                                                             td= metric.qualityScore
                                                             td= metric.quantityScore
                                                             td= metric.overallScore
-                                                            
                                         else
                                             p No performance metrics available.
+                                    td.teamname= user.teamName
+                                    td
+                                        button(onclick='removeUser(this)') Remove
                 else
                     p No users found.
                 
@@ -74,75 +112,18 @@ html
                     table
                         thead
                             tr
-                                th Team Name
+                                th Team Names
+                                th Members
                         tbody
                             each team in teams
-                                tr
-                                    td= team.teamName
+                                tr.team-row
+                                    td.teamname= team.teamName
+                                    td
+                                        if team.members.length
+                                            ul
+                                                each member in team.members
+                                                    li= member.firstName + ' ' + member.lastName
+                                        else
+                                            p No members available.
                 else
                     p No teams available.
-
-    //-   footer
-    //-     p Total Users: #{users.length}
-    //-     p Registered Users: #{registeredUsers.length}
-    //-     p Logged In Users: #{loggedInUsers.length}
-
-    //- ------------------------------------------------------------
-
-//- doctype html
-//- html
-//-     head
-//-         title Dashboard
-//-         link(rel='stylesheet', href='/stylesheets/style.css')
-//-     body
-//-         header
-//-             h1 User Dashboard
-//-         main
-//-             if users.length
-//-                 table
-//-                     thead
-//-                         tr
-//-                             th User Name
-//-                             th Name
-//-                             th Email
-
-                           
-                    
-//-                     tbody
-//-                         each user in users
-//-                             tr
-//-                                 td= user.username
-//-                                 td= user.firstName + ' ' + user.lastName
-//-                                 td= user.email
-//-                                 td
-//-                                     table
-//-                                         thead
-//-                                             tr
-//-                                                 th Task Name
-//-                                                 th Description
-//-                                                 th Assigned Date
-//-                                                 th Due Date
-//-                                                 th Complexity
-//-                                         tbody
-//-                                             each task in user.tasks
-//-                                                 tr
-//-                                                     td= task.taskName
-//-                                                     td= task.description
-//-                                                     td= task.assignedDate
-//-                                                     td= task.dueDate
-//-                                                     td= task.complexity
-                               
-
-//-                     tbody
-//-                         each team in teams 
-//-                             tr
-//-                             th Team Name
-//-                                 td= team.teamName
-                               
-                               
-//-             else
-//-                 p No users found.
-//-                 footer
-//-                     p Total Users: #{users.length}
-//-                     p Registered Users: #{registeredUsers.length}
-//-                     p Logged In Users: #{loggedInUsers.length}

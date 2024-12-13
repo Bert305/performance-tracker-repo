@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "metrics-performance-tracker",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -20,6 +20,7 @@
     "express": "^4.18.1",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "metrics-performance-tracker": "file:",
     "mongoose": "^6.4.0",
     "nodemon": "2.0.22",
     "pug": "^3.0.3",

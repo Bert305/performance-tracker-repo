@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, addPerformanceMetrics, logout, addTask, updateTask, deleteTask, getAllTeamInfo} = require('../controllers/userControllers')
+const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, addPerformanceMetrics, logout, addTask, updateTask, deleteTask, getAllTeamInfo, teamMembersInfo} = require('../controllers/userControllers')
 
 // Route for testing
 router.get('/test', test);

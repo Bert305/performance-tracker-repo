@@ -75,7 +75,7 @@ const login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
          // Generate a JWT token valid for 72 hour
-        const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '72h' });
+        const token = jwt.sign({ id: teamMember._id }, 'your_jwt_secret', { expiresIn: '8766h' });
         // Send the token and user data as the response
         res.json({ token });
     } catch (error) {
@@ -218,6 +218,8 @@ const getAllTeamInfo = async (req, res) => {
         }
 
         // Get all team members from the same team, including their tasks and performance metrics
+        // Populate the team information for each team member
+        // What requests are being made here on postman?
         const teamMembersInfo = await TeamMember.find({ teamID: team._id })
             .select('firstName lastName email image tasks performanceMetrics teamID')
             .populate('teamID', 'teamName')  // Populate team information

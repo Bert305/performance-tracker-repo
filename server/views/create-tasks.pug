@@ -10,8 +10,30 @@ html
                 const overallScore = qualityScore / (1 + Math.abs(complexity - quantityScore));
                 document.getElementById('overallScore').value = overallScore.toFixed(2);
             }
+
+            function populateUserData(userData) {
+                document.getElementById('taskName').value = userData.taskName || '';
+                document.getElementById('description').value = userData.description || '';
+                document.getElementById('assignedDate').value = userData.assignedDate || '';
+                document.getElementById('dueDate').value = userData.dueDate || '';
+                document.getElementById('complexity').value = userData.complexity || '';
+                document.getElementById('qualityScore').value = userData.qualityScore || '';
+                document.getElementById('quantityScore').value = userData.quantityScore || '';
+                document.getElementById('overallScore').value = userData.overallScore || '';
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                fetch('/user-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        populateUserData(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching user data:', error);
+                    });
+            });
     body
-        form(action="/tasks" method="POST")
+        form(action="/tasks" method="POST", onsubmit="window.location='/dashboard-pug'; return false;")
             div
                 label(for="taskName") Task Name:
                 input(type="text" id="taskName" name="taskName" required)
@@ -25,20 +47,71 @@ html
                 label(for="dueDate") Due Date:
                 input(type="date" id="dueDate" name="dueDate" required)
             div
-                label(for="complexity") Complexity:
-                input(type="number" id="complexity" name="complexity" min="1" max="10" required)
+                label(for="complexity") Complexity 1-8:
+                input(type="number" id="complexity" name="complexity" min="1" max="8" required)
             div
                 button(type="submit") Create Task
+        script.
+            document.querySelector('form[action="/tasks"]').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const taskData = {
+                    taskName: document.getElementById('taskName').value,
+                    description: document.getElementById('description').value,
+                    assignedDate: document.getElementById('assignedDate').value,
+                    dueDate: document.getElementById('dueDate').value,
+                    complexity: document.getElementById('complexity').value
+                };
+                fetch('/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(taskData)
+                }).then(response => {
+                    if (response.ok) {
+                        window.location = '/dashboard-pug';
+                    } else {
+                        alert('Failed to create task');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to create task');
+                });
+            });
 
-        form(action="/metrics" method="POST" onsubmit="calculateOverallScore()")
+        form(action="/metrics" method="POST", onsubmit="event.preventDefault(); calculateOverallScore(); submitMetricsForm();")
             div
-                label(for="qualityScore") Quality Score:
-                input(type="number" id="qualityScore" name="qualityScore" min="1" max="100" required)
+                label(for="qualityScore") Quality Score 10-100 Letter Grade F-A:
+                input(type="number" id="qualityScore" name="qualityScore" min="10" max="100" required)
             div
-                label(for="quantityScore") Quantity Score:
-                input(type="number" id="quantityScore" name="quantityScore" min="1" max="10" required)
+                label(for="quantityScore") Quantity Score 1-365 days:
+                input(type="number" id="quantityScore" name="quantityScore" min="1" max="365" required)
             div
                 label(for="overallScore") Overall Score:
                 input(type="number" id="overallScore" name="overallScore" min="1" max="100" readonly required)
             div
                 button(type="submit") Create Metrics
+        script.
+            function submitMetricsForm() {
+                const metricsData = {
+                    qualityScore: document.getElementById('qualityScore').value,
+                    quantityScore: document.getElementById('quantityScore').value,
+                    overallScore: document.getElementById('overallScore').value
+                };
+                fetch('/metrics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(metricsData)
+                }).then(response => {
+                    if (response.ok) {
+                        window.location = '/dashboard-pug';
+                    } else {
+                        alert('Failed to create metrics');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to create metrics');
+                });
+            }

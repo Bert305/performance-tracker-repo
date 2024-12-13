@@ -56,6 +56,23 @@ app.get('/dashboard-pug', async (req, res) => {
   }
 });
 
+// app.get('/dashboard-pug', async (req, res) => {
+//   try {
+//     const users = await User.find({}, 'username'); // Fetch user data with only username field
+
+//     const teams = await Team.find({}, 'teamName'); // Fetch team data with only teamName field
+
+//     res.render('dashboard.pug', {
+//       title: 'Express Pug',
+//       message: 'This is another sample page',
+//       users: users, // Pass user data to the template
+//       teams: teams  // Pass team data to the template
+//     });
+//   } catch (error) {
+//     res.status(500).send('Error fetching user data');
+//   }
+// });
+
 
 connectDB()//connects our Atlas cluster
 
@@ -77,6 +94,29 @@ app.get('/', (req, res) => {
 app.use('/team-members', userRoutes);
 app.use('/teams', teamRoutes);
 
+
+
+
+//need a web-hook to get hit by Trello API when a card gets moved from one list to another
+//Create a web-hook to tell Trello to send a request to that end point. Should see console.log(“web hook hit“)
+
+const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
+const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
+const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor a specific list
+
+// Step 1: Create Trello Webhook
+async function createWebhook() {
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'Card Move Webhook',
+      callbackURL: '/trello-webhook', // replace with your actual URL
+      idModel: BOARD_ID,
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
 
 
 //web-hook end-point
@@ -102,29 +142,6 @@ app.post('/trello-webhook', (req, res) => {
     console.log('Received action is not a card movement.');
   }
 });
-//need a web-hook to get hit by Trello API when a card gets moved from one list to another
-//Create a web-hook to tell Trello to send a request to that end point. Should see console.log(“web hook hit“)
-
-const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
-const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
-const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor a specific list
-
-// Step 1: Create Trello Webhook
-async function createWebhook() {
-  try {
-    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-      description: 'Card Move Webhook',
-      callbackURL: 'https://trello.com/b/vMdaABXZ/internal-performance-tracker/trello-webhook', // replace with your actual URL
-      idModel: BOARD_ID,
-    });
-    console.log('Webhook created:', response.data);
-  } catch (error) {
-    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-  }
-}
-
-
-
 
 
 // app.get('/trello-actions', async (req, res) => {
