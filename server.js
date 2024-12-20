@@ -106,19 +106,42 @@ const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor 
 const BASE_URL = process.env.BASE_URL;
 
 // Step 1: Create Trello Webhook
+// async function createWebhook() {
+//   try {
+//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+//       description: 'Card Move Webhook',
+//       callbackURL: `${BASE_URL}trello-webhook`, // replace with your actual URL
+//       idModel: BOARD_ID,
+//     });
+//     console.log('Webhook created:', response.data);
+//   } catch (error) {
+//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+//   }
+// }
+
+// This code sample uses the 'node-fetch' library:
+// https://www.npmjs.com/package/node-fetch
+const fetch = require('node-fetch');
+
+const callbackURL = `${BASE_URL}/trello-webhook`;
+
 async function createWebhook() {
   try {
-    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-      description: 'Card Move Webhook',
-      callbackURL: `${BASE_URL}trello-webhook`, // replace with your actual URL
-      idModel: BOARD_ID,
+    const response = await fetch(`https://api.trello.com/1/webhooks/?callbackURL=${callbackURL}&idModel=${BOARD_ID}&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json'
+      }
     });
-    console.log('Webhook created:', response.data);
-  } catch (error) {
-    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+    console.log(`Response: ${response.status} ${response.statusText}`);
+    const text = await response.text();
+    console.log(text);
+  } catch (err) {
+    console.error(err);
   }
 }
 
+createWebhook();
 
 //web-hook end-point
 app.post('/trello-webhook', (req, res) => {
@@ -145,18 +168,18 @@ app.post('/trello-webhook', (req, res) => {
 });
 
 
-// app.get('/trello-actions', async (req, res) => {
-//   try {
-//     const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
-//     res.json(response.data);
-//   } catch (error) {
-//     console.error('Error fetching actions:', error.response ? error.response.data : error.message);
-//     res.status(500).send('Error fetching actions');
-//   }
-// });
+app.get('/trello-actions', async (req, res) => {
+  try {
+    const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching actions:', error.response ? error.response.data : error.message);
+    res.status(500).send('Error fetching actions');
+  }
+});
 
 let cachedActions = [];  // Define a variable to store the actions data
-
+console.log(app._router.stack);
 app.get('/trello-actions', async (req, res) => {
   try {
     const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
@@ -191,7 +214,7 @@ app.get('/use-trello-actions', (req, res) => {
 
 
 
-createWebhook();
+// createWebhook();
 
 
 
