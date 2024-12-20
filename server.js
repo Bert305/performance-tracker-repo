@@ -103,13 +103,14 @@ app.use('/teams', teamRoutes);
 const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
 const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
 const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor a specific list
+const BASE_URL = process.env.BASE_URL;
 
 // Step 1: Create Trello Webhook
 async function createWebhook() {
   try {
     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
       description: 'Card Move Webhook',
-      callbackURL: '/trello-webhook', // replace with your actual URL
+      callbackURL: `${BASE_URL}trello-webhook`, // replace with your actual URL
       idModel: BOARD_ID,
     });
     console.log('Webhook created:', response.data);
