@@ -104,6 +104,7 @@ const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
 const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
 const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor a specific list
 const BASE_URL = process.env.BASE_URL;
+const ID = process.env.ID;
 
 // Step 1: Create Trello Webhook
 // async function createWebhook() {
@@ -119,35 +120,82 @@ const BASE_URL = process.env.BASE_URL;
 //   }
 // }
 
+
+//step 1: Create Trello Webhook
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
 const fetch = require('node-fetch');
 
-const callbackURL = `${BASE_URL}/trello-webhook`;
-
-async function createWebhook() {
-  try {
-    const response = await fetch(`https://api.trello.com/1/webhooks/?callbackURL=${callbackURL}&idModel=${BOARD_ID}&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    console.log(`Response: ${response.status} ${response.statusText}`);
-    const text = await response.text();
-    console.log(text);
-  } catch (err) {
-    console.error(err);
+fetch(`https://api.trello.com/1/webhooks/?callbackURL=${BASE_URL}&idModel=${BOARD_ID}&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json'
   }
-}
+})
+  .then(response => {
+    console.log(
+      `Response: ${response.status} ${response.statusText}`
+    );
+    return response.text();
+  })
+  .then(text => console.log(text))
+  .catch(err => console.error(err));
 
-createWebhook();
+//Update Trello Webhook
 
+// const updateWebhook = async () => {
+//     const apiKey = TRELLO_API_KEY;
+//     const token = TRELLO_TOKEN;
+//     const webhookId = ID;
+//     const newCallbackURL = BASE_URL;
+
+//     const url = `https://api.trello.com/1/webhooks/${webhookId}`;
+
+//     try {
+//         const response = await axios.put(url, null, {
+//             params: {
+//                 key: apiKey,
+//                 token: token,
+//                 callbackURL: newCallbackURL,
+//                 active: true // Reactivate the webhook if it was deactivated
+//             }
+//         });
+//         console.log('Webhook updated successfully:', response.data);
+//     } catch (error) {
+//         console.error('Error updating webhook:', error.response ? error.response.data : error.message);
+//     }
+// };
+
+// updateWebhook();
+
+
+//step 2: Get Status of Trello Webhook
+// This code sample uses the 'node-fetch' library:
+// https://www.npmjs.com/package/node-fetch
+const fetch2 = require('node-fetch');
+
+fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json'
+  }
+})
+  .then(response => {
+    console.log(
+      `Response: ${response.status} ${response.statusText}`
+    );
+    return response.text();
+  })
+  .then(text => console.log(text))
+  .catch(err => console.error(err));
+
+
+//Step 3: Get updates of the Trello Webhook hit with console log
 //web-hook end-point
-app.post('/trello-webhook', (req, res) => {
+app.post(`${BASE_URL}trello-webhook`, (req, res) => {
   
   // Log the entire payload for inspection
-  console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
+  console.log('Received webhook event:', JSON.stringify(req.body, null, 4));
 
   const { action } = req.body;
 
@@ -156,28 +204,37 @@ app.post('/trello-webhook', (req, res) => {
 
   // Check if we received an updateCard action with list movement details
   if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
-    const cardId = action.data.card.id;
-    const cardName = action.data.card.name;
-    const fromList = action.data.listBefore.name;
-    const toList = action.data.listAfter.name;
+  const cardId = action.data.card.id;
+  const cardName = action.data.card.name;
+  const fromList = action.data.listBefore.name;
+  const toList = action.data.listAfter.name;
 
-    console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
+  console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
   } else {
-    console.log('Received action is not a card movement.');
+  console.log('Received action is not a card movement.');
   }
 });
 
 
-app.get('/trello-actions', async (req, res) => {
-  try {
-    const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
-    res.json(response.data);
-  } catch (error) {
-    console.error('Error fetching actions:', error.response ? error.response.data : error.message);
-    res.status(500).send('Error fetching actions');
-  }
-});
 
+
+
+
+
+
+
+//----------------------------------This is the request made as a plan b to console log card movements-------------------------------------
+
+// app.get('/trello-actions', async (req, res) => {
+//   try {
+//     const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error('Error fetching actions:', error.response ? error.response.data : error.message);
+//     res.status(500).send('Error fetching actions');
+//   }
+// });
+// something I made to console log some data from postman as an alternative to the above code
 let cachedActions = [];  // Define a variable to store the actions data
 console.log(app._router.stack);
 app.get('/trello-actions', async (req, res) => {
@@ -211,7 +268,7 @@ app.get('/use-trello-actions', (req, res) => {
 
   res.send("Cached actions data has been processed.");
 });
-
+//----------------------------------This is the request made as a plan b to console log card movements-------------------------------------
 
 
 // createWebhook();
