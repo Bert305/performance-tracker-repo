@@ -106,41 +106,29 @@ const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor 
 const BASE_URL = process.env.BASE_URL;
 const ID = process.env.ID;
 
-// Step 1: Create Trello Webhook
-// async function createWebhook() {
-//   try {
-//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-//       description: 'Card Move Webhook',
-//       callbackURL: `${BASE_URL}trello-webhook`, // replace with your actual URL
-//       idModel: BOARD_ID,
-//     });
-//     console.log('Webhook created:', response.data);
-//   } catch (error) {
-//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-//   }
-// }
 
-
-//step 1: Create Trello Webhook
+//step 1: Create Trello Webhook-------------------------------WORKED!!!---------------------------------
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
 
-fetch(`https://api.trello.com/1/webhooks/?callbackURL=${BASE_URL}&idModel=${BOARD_ID}&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-  method: 'POST',
-  headers: {
-    'Accept': 'application/json'
-  }
-})
-  .then(response => {
-    console.log(
-      `Response: ${response.status} ${response.statusText}`
-    );
-    return response.text();
-  })
-  .then(text => console.log(text))
-  .catch(err => console.error(err));
+// fetch(`https://api.trello.com/1/webhooks/?callbackURL=${BASE_URL}&idModel=${BOARD_ID}&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+//   method: 'POST',
+//   headers: {
+//     'Accept': 'application/json'
+//   }
+// })
+//   .then(response => {
+//     console.log(
+//       `Response: ${response.status} ${response.statusText}`
+//     );
+//     return response.text();
+//   })
+//   .then(text => console.log(text))
+//   .catch(err => console.error(err));
 
+
+//------------------------------------update webhook--------------------------------------------
 //Update Trello Webhook
 
 // const updateWebhook = async () => {
