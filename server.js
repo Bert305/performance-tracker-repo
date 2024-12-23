@@ -112,10 +112,11 @@ const ID = process.env.ID;
 // https://www.npmjs.com/package/node-fetch
 // Step 1: Create Trello Webhook with description
 async function createWebhook() {
+  console.log(app._router.stack);
   try {
     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
       description: 'Card Move Webhook',
-      callbackURL: `${BASE_URL}trello-webhook`, // replace with your actual URL
+      callbackURL: `${BASE_URL}/trello-webhook`, // replace with your actual URL
       idModel: BOARD_ID,
     });
     console.log('Webhook created:', response.data);
@@ -163,22 +164,22 @@ createWebhook() // Call the function to create the webhook
 //step 2: Get Status of Trello Webhook
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-const fetch2 = require('node-fetch');
+// const fetch2 = require('node-fetch');
 
-fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json'
-  }
-})
-  .then(response => {
-    console.log(
-      `Response: ${response.status} ${response.statusText}`
-    );
-    return response.text();
-  })
-  .then(text => console.log(text))
-  .catch(err => console.error(err));
+// fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+//   method: 'GET',
+//   headers: {
+//     'Accept': 'application/json'
+//   }
+// })
+//   .then(response => {
+//     console.log(
+//       `Response: ${response.status} ${response.statusText}`
+//     );
+//     return response.text();
+//   })
+//   .then(text => console.log(text))
+//   .catch(err => console.error(err));
 
 
 //web-hook end-point
@@ -222,7 +223,6 @@ app.post('/trello-webhook', (req, res) => {
 // });
 // something I made to console log some data from postman as an alternative to the above code
 let cachedActions = [];  // Define a variable to store the actions data
-console.log(app._router.stack);
 app.get('/trello-actions', async (req, res) => {
   try {
     const response = await axios.get(`https://api.trello.com/1/boards/${BOARD_ID}/actions?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
