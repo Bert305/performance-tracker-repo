@@ -110,22 +110,23 @@ const ID = process.env.ID;
 //step 1: Create Trello Webhook-------------------------------WORKED!!!---------------------------------
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-// const fetch = require('node-fetch');
+// Step 1: Create Trello Webhook with description
+async function createWebhook() {
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'Card Move Webhook',
+      callbackURL: `${BASE_URL}trello-webhook`, // replace with your actual URL
+      idModel: BOARD_ID,
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
+createWebhook() // Call the function to create the webhook
 
-// fetch(`https://api.trello.com/1/webhooks/?callbackURL=${BASE_URL}&idModel=${BOARD_ID}&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-//   method: 'POST',
-//   headers: {
-//     'Accept': 'application/json'
-//   }
-// })
-//   .then(response => {
-//     console.log(
-//       `Response: ${response.status} ${response.statusText}`
-//     );
-//     return response.text();
-//   })
-//   .then(text => console.log(text))
-//   .catch(err => console.error(err));
+
+
 
 
 //------------------------------------update webhook--------------------------------------------
@@ -135,15 +136,17 @@ const ID = process.env.ID;
 //     const apiKey = TRELLO_API_KEY;
 //     const token = TRELLO_TOKEN;
 //     const webhookId = ID;
-//     const newCallbackURL = BASE_URL;
+//     const newCallbackURL = `${BASE_URL}trello-webhook`;
+//     const newModelID = BOARD_ID;
 
-//     const url = `https://api.trello.com/1/webhooks/${webhookId}`;
+//      const url = `https://api.trello.com/1/webhooks/${webhookId}`;
 
 //     try {
 //         const response = await axios.put(url, null, {
 //             params: {
 //                 key: apiKey,
 //                 token: token,
+//                 idModel: newModelID, // Update the model ID if needed
 //                 callbackURL: newCallbackURL,
 //                 active: true // Reactivate the webhook if it was deactivated
 //             }
@@ -178,34 +181,29 @@ fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TR
   .catch(err => console.error(err));
 
 
-//Step 3: Get updates of the Trello Webhook hit with console log
 //web-hook end-point
-app.post(`${BASE_URL}trello-webhook`, (req, res) => {
-  
-  // Log the entire payload for inspection
-  console.log('Received webhook event:', JSON.stringify(req.body, null, 4));
+app.post('/trello-webhook', (req, res) => {
+
+  console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
 
   const { action } = req.body;
 
-  // Respond immediately to acknowledge Trello's request
+  //Respond with 200 OK to acknowledge receipt of the webhook
   res.sendStatus(200);
 
-  // Check if we received an updateCard action with list movement details
+  //check if the action is a card move
   if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
-  const cardId = action.data.card.id;
-  const cardName = action.data.card.name;
-  const fromList = action.data.listBefore.name;
-  const toList = action.data.listAfter.name;
+    const cardID = action.data.card.id;
+    const cardName = action.data.card.name;
+    const fromList = action.data.listBefore.name;
+    const toList = action.data.listAfter.name;
 
-  console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
-  } else {
-  console.log('Received action is not a card movement.');
+    console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
+  }
+  else {
+    console.log('No card move action detected.');
   }
 });
-
-
-
-
 
 
 
