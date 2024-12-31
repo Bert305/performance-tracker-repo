@@ -110,20 +110,20 @@ const ID = process.env.ID;
 //step 1: Create Trello Webhook with description-------------------------------WORKED!!!---------------------------------
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-// async function createWebhook() {
-//   console.log(app._router.stack);
-//   try {
-//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-//       description: 'Card Move Webhook',
-//       callbackURL: `${BASE_URL}/trello-webhook`, // replace with your actual URL
-//       idModel: BOARD_ID,
-//     });
-//     console.log('Webhook created:', response.data);
-//   } catch (error) {
-//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-//   }
-// }
-// createWebhook() // Call the function to create the webhook
+async function createWebhook() {
+  console.log(app._router.stack);
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'Card Move Webhook',
+      callbackURL: `${BASE_URL}/trello-webhook`, // replace with your actual URL
+      idModel: BOARD_ID,
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
+createWebhook() // Call the function to create the webhook
 
 
 
