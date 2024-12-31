@@ -229,23 +229,23 @@ app.head('/trello-webhook', (req, res) => {
 //step 2: Get Status of Trello Webhook
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-const fetch2 = require('node-fetch');
+// const fetch2 = require('node-fetch');
 
-fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json'
-  }
-})
-  .then(response => {
-    console.log(
-      `Response: ${response.status} ${response.statusText}`
-    );
-    console.log(app._router.stack);
-    return response.text();
-  })
-  .then(text => console.log(text))
-  .catch(err => console.error(err));
+// fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+//   method: 'GET',
+//   headers: {
+//     'Accept': 'application/json'
+//   }
+// })
+//   .then(response => {
+//     console.log(
+//       `Response: ${response.status} ${response.statusText}`
+//     );
+//     console.log(app._router.stack);
+//     return response.text();
+//   })
+//   .then(text => console.log(text))
+//   .catch(err => console.error(err));
 
 
 // web-hook end-point
