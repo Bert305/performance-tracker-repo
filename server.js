@@ -198,32 +198,32 @@ app.head('/trello-webhook', (req, res) => {
 //------------------------------------update webhook--------------------------------------------
 //Update Trello Webhook
 
-// const updateWebhook = async () => {
-//     const apiKey = TRELLO_API_KEY;
-//     const token = TRELLO_TOKEN;
-//     const webhookId = ID;
-//     const newCallbackURL = `${BASE_URL}trello-webhook`;
-//     const newModelID = BOARD_ID;
+const updateWebhook = async () => {
+    const apiKey = TRELLO_API_KEY;
+    const token = TRELLO_TOKEN;
+    const webhookId = ID;
+    const newCallbackURL = `${BASE_URL}trello-webhook`;
+    const newModelID = BOARD_ID;
 
-//      const url = `https://api.trello.com/1/webhooks/${webhookId}`;
+     const url = `https://api.trello.com/1/webhooks/${webhookId}`;
 
-//     try {
-//         const response = await axios.put(url, null, {
-//             params: {
-//                 key: apiKey,
-//                 token: token,
-//                 idModel: newModelID, // Update the model ID if needed
-//                 callbackURL: newCallbackURL,
-//                 active: true // Reactivate the webhook if it was deactivated
-//             }
-//         });
-//         console.log('Webhook updated successfully:', response.data);
-//     } catch (error) {
-//         console.error('Error updating webhook:', error.response ? error.response.data : error.message);
-//     }
-// };
+    try {
+        const response = await axios.put(url, null, {
+            params: {
+                key: apiKey,
+                token: token,
+                idModel: newModelID, // Update the model ID if needed
+                callbackURL: newCallbackURL,
+                active: true // Reactivate the webhook if it was deactivated
+            }
+        });
+        console.log('Webhook updated successfully:', response.data);
+    } catch (error) {
+        console.error('Error updating webhook:', error.response ? error.response.data : error.message);
+    }
+};
 
-// updateWebhook();
+updateWebhook();
 
 
 //step 2: Get Status of Trello Webhook
