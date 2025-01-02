@@ -300,9 +300,9 @@ app.post('/trello-webhook', (req, res) => {
 
       updateCard(cardID, fromList, { exitTimestamp: timestamp })
       .then(() => {
-        addCard(cardID, fromList, toList, cardName, timestamp);
         // After updating the card movement, calculate the time in the previous list
         getTimeInList(cardID, fromList, cardName);
+        return addCard(cardID, fromList, toList, cardName, timestamp);
       })
       .catch(error => {
         console.error('Error updating card movement:', error);
@@ -346,8 +346,9 @@ function findCard(cardID, toListName) {
 
 
 
-function getTimeInList(cardID, toListName, cardName) {
-  findCard(cardID, toListName).then(card => { // Corrected from listID to toListName
+async function getTimeInList(cardID, toListName, cardName) {
+  try {
+    const card = await findCard(cardID, toListName); // Corrected from listID to toListName
     if (card && card.entryTimestamp && card.exitTimestamp) {
       const duration = new Date(card.exitTimestamp) - new Date(card.entryTimestamp);
       const hours = duration / 1000 / 60 / 60;  // Calculate duration in hours
@@ -355,9 +356,9 @@ function getTimeInList(cardID, toListName, cardName) {
     } else {
       console.log(`Incomplete data for calculating time in list for card "${cardName}".`);
     }
-  }).catch(error => {
+  } catch (error) {
     console.error('Error calculating time in list for card:', cardName, error);
-  });
+  }
 }
 
 
