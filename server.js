@@ -291,13 +291,6 @@ app.post('/trello-webhook', (req, res) => {
 
       console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
 
-      // Update the database record for the card leaving its old list
-      updateCard(cardID, fromList, { exitTimestamp: timestamp }).then(() => {
-        // Log successful update or handle errors
-      }).catch(error => {
-        console.error('Error updating card movement:', error);
-      });
-
       // Add a new record for the card entering a new list
       addCard(cardID, fromList, toList, cardName, timestamp).then(() => {
         // Log successful addition or handle errors
