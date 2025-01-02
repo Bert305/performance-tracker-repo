@@ -8,6 +8,7 @@ const axios = require('axios');
 const cors = require("cors");//added recently to help the backend connect to the front-end
 const teamRoutes= require('./routes/teamRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
+const CardMovement = require('./Module/CardMovementSchema.js'); // Adjust the path as necessary
 
 const pug = require('pug');
 const path = require('path');
@@ -80,6 +81,7 @@ app.use(cors());//needed to execute cors
 const bodyParser = require('body-parser'); 
 const User = require('./Module/userSchema.js'); // Adjust the path as necessary
 const Team = require('./Module/teamSchema.js'); // Adjust the path as necessary
+
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve testing on postman
 //allows us to connect our middleware to our routs.js file
@@ -248,31 +250,105 @@ fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TR
   .catch(err => console.error(err));
 
 
-// web-hook end-point
+// // web-hook end-point----------------------------------This works!!!! Please keep it commented out for now!!-------------------------------------
+// app.post('/trello-webhook', (req, res) => {
+
+//   console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
+
+//   const { action } = req.body;
+
+//   //Respond with 200 OK to acknowledge receipt of the webhook
+//   res.sendStatus(200);
+
+//   //check if the action is a card move
+//   if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+//     const cardID = action.data.card.id;
+//     const cardName = action.data.card.name;
+//     const fromList = action.data.listBefore.name;
+//     const toList = action.data.listAfter.name;
+
+//     console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
+//   }
+//   else {
+//     console.log('No card move action detected.');
+//   }
+// });
+
+//----------------------------This is to check the time stamp of the card movements-------------------------------------
+// Finds an existing card movement document that hasn't been completed yet
+function findCard(cardID, listID) {
+  return CardMovement.findOne({
+    cardID: cardID,
+    toListID: listID,
+    exitTimestamp: { $exists: false }
+  });
+}
+
+// Updates an existing card movement document to set the exit timestamp
+function updateCard(cardID, listID, updates) {
+  return CardMovement.findOneAndUpdate({
+    cardID: cardID,
+    toListID: listID,
+    exitTimestamp: { $exists: false }
+  }, updates, { new: true });
+}
+
+// Adds a new card movement document when a card enters a new list
+function addCard(cardID, fromList, toList, timestamp) {
+  const newMovement = new CardMovement({
+    cardID: cardID,
+    fromListID: fromList,
+    toListID: toList,
+    entryTimestamp: timestamp
+  });
+  return newMovement.save();
+}
+
 app.post('/trello-webhook', (req, res) => {
+  try {
+    const { action } = req.body;
 
-  console.log('Received webhook event:', JSON.stringify(req.body, null, 2));
+    if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+      const cardID = action.data.card.id;
+      const fromList = action.data.listBefore.id;
+      const toList = action.data.listAfter.id;
+      const timestamp = new Date();  // Current time when the card moved
 
-  const { action } = req.body;
+      console.log(`Card ${cardID} moved from ${fromList} to ${toList} at ${timestamp}`);
 
-  //Respond with 200 OK to acknowledge receipt of the webhook
-  res.sendStatus(200);
+      // Update the database record for the card leaving its old list
+      updateCard(cardID, fromList, { exitTimestamp: timestamp })
+        .then(() => {
+          // Add a new record for the card entering a new list
+          addCard(cardID, fromList, toList, timestamp);
+        })
+        .catch(error => {
+          console.error('Database operation failed:', error);
+        });
 
-  //check if the action is a card move
-  if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
-    const cardID = action.data.card.id;
-    const cardName = action.data.card.name;
-    const fromList = action.data.listBefore.name;
-    const toList = action.data.listAfter.name;
+      // Optionally calculate and log time in the previous list
+      getTimeInList(cardID, fromList);
+    }
 
-    console.log(`Card "${cardName}" was moved from "${fromList}" to "${toList}".`);
-  }
-  else {
-    console.log('No card move action detected.');
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    res.sendStatus(500);
   }
 });
 
-
+function getTimeInList(cardID, listID) {
+  findCard(cardID, listID).then(card => {
+    if (card && card.entryTimestamp && card.exitTimestamp) {
+      const duration = new Date(card.exitTimestamp) - new Date(card.entryTimestamp);
+      console.log(`Card ${cardID} was in list ${listID} for ${duration / 1000 / 60 / 60} hours`);
+    } else {
+      console.log('Incomplete data for calculating time in list.');
+    }
+  }).catch(error => {
+    console.error('Error calculating time in list:', error);
+  });
+}
 
 
 
