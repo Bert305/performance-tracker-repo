@@ -340,30 +340,32 @@ function addCard(cardID, fromList, toList, cardName, timestamp) {
   return newMovement.save();
 }
 
-function findCard(cardID, toListName) {
+function findCard(cardID, fromListName) {
   return CardMovement.findOne({
     cardID: cardID,
-    toListName: toListName,
-    exitTimestamp: { $exists: false }
+    fromListName: fromListName,  // Ensure it matches the schema field name
+    exitTimestamp: { $exists: true }  // Looking for completed movements
   });
 }
 
 
 
-async function getTimeInList(cardID, toListName, cardName) {
+
+async function getTimeInList(cardID, fromListName, cardName) {
   try {
-    const card = await findCard(cardID, toListName); // Corrected from listID to toListName
+    const card = await findCard(cardID, fromListName);
     if (card && card.entryTimestamp && card.exitTimestamp) {
       const duration = new Date(card.exitTimestamp) - new Date(card.entryTimestamp);
       const hours = duration / 1000 / 60 / 60;  // Calculate duration in hours
-      console.log(`Card "${cardName}" was in list "${toListName}" for ${hours.toFixed(2)} hours`);
+      console.log(`Card "${cardName}" was in list "${fromListName}" for ${hours.toFixed(2)} hours`);
     } else {
-      console.log(`Incomplete data for calculating time in list for card "${cardName}".`);
+      console.log(`Incomplete data for calculating time in list for card "${cardName}". Maybe the exit timestamp has not been set.`);
     }
   } catch (error) {
     console.error('Error calculating time in list for card:', cardName, error);
   }
 }
+
 
 
 
