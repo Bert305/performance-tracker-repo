@@ -276,27 +276,66 @@ fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TR
 
 //----------------------------This is to check the time stamp of the card movements-------------------------------------
 // Finds an existing card movement document that hasn't been completed yet
-function findCard(cardID, listID) {
-  return CardMovement.findOne({
-    cardID: cardID,
-    toListID: listID,
-    exitTimestamp: { $exists: false }
-  });
-}
 
-// Updates an existing card movement document to set the exit timestamp
-function updateCard(cardID, listID, updates) {
+app.post('/trello-webhook', (req, res) => {
+
+  try {
+    const { action } = req.body;
+
+    if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+      const cardID = action.data.card.id;
+      const cardName = action.data.card.name;
+      const fromList = action.data.listBefore.id;
+      const toList = action.data.listAfter.id;
+      const timestamp = new Date();  // Current time when the card moved
+
+      console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
+
+      // Update the database record for the card leaving its old list
+      updateCard(cardID, fromList, { exitTimestamp: timestamp }).then(() => {
+        // Log successful update or handle errors
+      }).catch(error => {
+        console.error('Error updating card movement:', error);
+      });
+
+      // Add a new record for the card entering a new list
+      addCard(cardID, fromList, toList, cardName, timestamp).then(() => {
+        // Log successful addition or handle errors
+      }).catch(error => {
+        console.error('Error adding card movement:', error);
+      });
+
+      updateCard(cardID, fromList, { exitTimestamp: timestamp })
+      .then(() => {
+        addCard(cardID, fromList, toList, cardName, timestamp);
+        // After updating the card movement, calculate the time in the previous list
+        getTimeInList(cardID, fromList, cardName);
+      })
+      .catch(error => {
+        console.error('Error updating card movement:', error);
+      });
+
+    }
+    res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    res.sendStatus(500); // Send an error response if something goes wrong
+  }
+});
+
+
+function updateCard(cardID, fromList, updates) {
   return CardMovement.findOneAndUpdate({
     cardID: cardID,
-    toListID: listID,
+    toListID: fromList, // Use `toListID` as it was the destination in the previous movement
     exitTimestamp: { $exists: false }
   }, updates, { new: true });
 }
 
-// Adds a new card movement document when a card enters a new list
-function addCard(cardID, fromList, toList, timestamp) {
+function addCard(cardID, fromList, toList, cardName, timestamp) {
   const newMovement = new CardMovement({
     cardID: cardID,
+    cardName: cardName,
     fromListID: fromList,
     toListID: toList,
     entryTimestamp: timestamp
@@ -304,51 +343,21 @@ function addCard(cardID, fromList, toList, timestamp) {
   return newMovement.save();
 }
 
-app.post('/trello-webhook', (req, res) => {
-  try {
-    const { action } = req.body;
 
-    if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
-      const cardID = action.data.card.id;
-      const fromList = action.data.listBefore.id;
-      const toList = action.data.listAfter.id;
-      const timestamp = new Date();  // Current time when the card moved
 
-      console.log(`Card ${cardID} moved from ${fromList} to ${toList} at ${timestamp}`);
-
-      // Update the database record for the card leaving its old list
-      updateCard(cardID, fromList, { exitTimestamp: timestamp })
-        .then(() => {
-          // Add a new record for the card entering a new list
-          addCard(cardID, fromList, toList, timestamp);
-        })
-        .catch(error => {
-          console.error('Database operation failed:', error);
-        });
-
-      // Optionally calculate and log time in the previous list
-      getTimeInList(cardID, fromList);
-    }
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.error('Error processing webhook:', error);
-    res.sendStatus(500);
-  }
-});
-
-function getTimeInList(cardID, listID) {
+function getTimeInList(cardID, listID, cardName) {
   findCard(cardID, listID).then(card => {
     if (card && card.entryTimestamp && card.exitTimestamp) {
       const duration = new Date(card.exitTimestamp) - new Date(card.entryTimestamp);
-      console.log(`Card ${cardID} was in list ${listID} for ${duration / 1000 / 60 / 60} hours`);
+      console.log(`Card "${cardName}" was in list ${listID} for ${duration / 1000 / 60 / 60} hours`);
     } else {
-      console.log('Incomplete data for calculating time in list.');
+      console.log(`Incomplete data for calculating time in list for card "${cardName}".`);
     }
   }).catch(error => {
-    console.error('Error calculating time in list:', error);
+    console.error('Error calculating time in list for card:', cardName, error);
   });
 }
+
 
 
 
