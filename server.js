@@ -320,7 +320,7 @@ app.post('/trello-webhook', (req, res) => {
 function updateCard(cardID, fromList, updates) {
   return CardMovement.findOneAndUpdate({
     cardID: cardID,
-    toListID: fromList, // Use `toListID` as it was the destination in the previous movement
+    toListName: fromList, // Use `toListID` as it was the destination in the previous movement
     exitTimestamp: { $exists: false }
   }, updates, { new: true });
 }
@@ -329,20 +329,29 @@ function addCard(cardID, fromList, toList, cardName, timestamp) {
   const newMovement = new CardMovement({
     cardID: cardID,
     cardName: cardName,
-    fromListID: fromList,
-    toListID: toList,
+    fromListName: fromList,
+    toListName: toList,
     entryTimestamp: timestamp
   });
   return newMovement.save();
 }
 
+function findCard(cardID, toListName) {
+  return CardMovement.findOne({
+    cardID: cardID,
+    toListName: toListName,
+    exitTimestamp: { $exists: false }
+  });
+}
 
 
-function getTimeInList(cardID, listID, cardName) {
-  findCard(cardID, listID).then(card => {
+
+function getTimeInList(cardID, toListName, cardName) {
+  findCard(cardID, toListName).then(card => { // Corrected from listID to toListName
     if (card && card.entryTimestamp && card.exitTimestamp) {
       const duration = new Date(card.exitTimestamp) - new Date(card.entryTimestamp);
-      console.log(`Card "${cardName}" was in list ${listID} for ${duration / 1000 / 60 / 60} hours`);
+      const hours = duration / 1000 / 60 / 60;  // Calculate duration in hours
+      console.log(`Card "${cardName}" was in list "${toListName}" for ${hours.toFixed(2)} hours`);
     } else {
       console.log(`Incomplete data for calculating time in list for card "${cardName}".`);
     }
