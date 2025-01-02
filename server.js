@@ -285,8 +285,8 @@ app.post('/trello-webhook', (req, res) => {
     if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
       const cardID = action.data.card.id;
       const cardName = action.data.card.name;
-      const fromList = action.data.listBefore.id;
-      const toList = action.data.listAfter.id;
+      const fromList = action.data.listBefore.name;
+      const toList = action.data.listAfter.name;
       const timestamp = new Date();  // Current time when the card moved
 
       console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
