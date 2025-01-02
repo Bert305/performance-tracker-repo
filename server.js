@@ -290,20 +290,24 @@ app.post('/trello-webhook', async (req, res) => {
 
       console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
 
-      // Update the card leaving its old list
+      // Ensure the exit timestamp is updated before adding a new movement and calculating time
       try {
         await updateCard(cardID, fromList, { exitTimestamp: timestamp });
-        console.log('Exit timestamp updated.');
+        console.log('Exit timestamp updated for:', cardName);
       } catch (error) {
         console.error('Error updating card movement:', error);
+        res.sendStatus(500);
+        return;
       }
 
       // Add a new record for the card entering a new list
       try {
         await addCard(cardID, fromList, toList, cardName, timestamp);
-        console.log('New movement added.');
+        console.log('New movement added for:', cardName);
       } catch (error) {
         console.error('Error adding card movement:', error);
+        res.sendStatus(500);
+        return;
       }
 
       // Calculate the time in the previous list
@@ -311,6 +315,8 @@ app.post('/trello-webhook', async (req, res) => {
         await getTimeInList(cardID, fromList, cardName);
       } catch (error) {
         console.error('Error calculating time in list:', error);
+        res.sendStatus(500);
+        return;
       }
     }
     res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
@@ -321,13 +327,14 @@ app.post('/trello-webhook', async (req, res) => {
 });
 
 
-function updateCard(cardID, fromList, updates) {
+function updateCard(cardID, fromListName, updates) {
   return CardMovement.findOneAndUpdate({
     cardID: cardID,
-    toListName: fromList, // Use `toListID` as it was the destination in the previous movement
+    fromListName: fromListName,
     exitTimestamp: { $exists: false }
   }, updates, { new: true });
 }
+
 
 function addCard(cardID, fromList, toList, cardName, timestamp) {
   const newMovement = new CardMovement({
