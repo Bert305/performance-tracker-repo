@@ -277,8 +277,7 @@ fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TR
 //----------------------------This is to check the time stamp of the card movements-------------------------------------
 // Finds an existing card movement document that hasn't been completed yet
 
-app.post('/trello-webhook', (req, res) => {
-
+app.post('/trello-webhook', async (req, res) => {
   try {
     const { action } = req.body;
 
@@ -291,23 +290,28 @@ app.post('/trello-webhook', (req, res) => {
 
       console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
 
-      // Add a new record for the card entering a new list
-      addCard(cardID, fromList, toList, cardName, timestamp).then(() => {
-        // Log successful addition or handle errors
-      }).catch(error => {
-        console.error('Error adding card movement:', error);
-      });
-
-      updateCard(cardID, fromList, { exitTimestamp: timestamp })
-      .then(() => {
-        // After updating the card movement, calculate the time in the previous list
-        getTimeInList(cardID, fromList, cardName);
-        return addCard(cardID, fromList, toList, cardName, timestamp);
-      })
-      .catch(error => {
+      // Update the card leaving its old list
+      try {
+        await updateCard(cardID, fromList, { exitTimestamp: timestamp });
+        console.log('Exit timestamp updated.');
+      } catch (error) {
         console.error('Error updating card movement:', error);
-      });
+      }
 
+      // Add a new record for the card entering a new list
+      try {
+        await addCard(cardID, fromList, toList, cardName, timestamp);
+        console.log('New movement added.');
+      } catch (error) {
+        console.error('Error adding card movement:', error);
+      }
+
+      // Calculate the time in the previous list
+      try {
+        await getTimeInList(cardID, fromList, cardName);
+      } catch (error) {
+        console.error('Error calculating time in list:', error);
+      }
     }
     res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
   } catch (error) {
