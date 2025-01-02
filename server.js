@@ -352,7 +352,7 @@ function findCard(cardID, fromListName) {
     cardID: cardID,
     fromListName: fromListName,  // Ensure it matches the schema field name
     exitTimestamp: { $exists: true }  // Looking for completed movements
-  });
+  }).sort({ exitTimestamp: -1 }); // Sort by exitTimestamp in descending order to get the latest movement
 }
 
 
