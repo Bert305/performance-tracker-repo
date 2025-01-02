@@ -286,7 +286,7 @@ app.post('/trello-webhook', async (req, res) => {
       const cardName = action.data.card.name;
       const fromList = action.data.listBefore.name;
       const toList = action.data.listAfter.name;
-      const timestamp = new Date();  // Current time when the card moved
+      const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });  // Current time in Eastern Standard Time when the card moved
 
       console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
 
