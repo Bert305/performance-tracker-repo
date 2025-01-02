@@ -363,8 +363,10 @@ async function getTimeInList(cardID, fromListName, cardName) {
     const card = await findCard(cardID, fromListName);
     if (card && card.entryTimestamp && card.exitTimestamp) {
       const duration = new Date(card.exitTimestamp) - new Date(card.entryTimestamp);
-      const hours = duration / 1000 / 60 / 60;  // Calculate duration in hours
-      console.log(`Card "${cardName}" was in list "${fromListName}" for ${hours.toFixed(2)} hours`);
+      const hours = Math.floor(duration / 1000 / 60 / 60);
+      const minutes = Math.floor((duration / 1000 / 60) % 60);
+      const seconds = Math.floor((duration / 1000) % 60);
+      console.log(`Card "${cardName}" was in list "${fromListName}" for ${hours} hours, ${minutes} minutes, and ${seconds} seconds`);
     } else {
       console.log(`Incomplete data for calculating time in list for card "${cardName}". Maybe the exit timestamp has not been set.`);
     }
