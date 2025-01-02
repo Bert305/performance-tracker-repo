@@ -356,7 +356,7 @@ function findCard(cardID, fromListName) {
 }
 
 
-//caluclate time in list by hours
+//calculate time in list by hours
 async function getTimeInList(cardID, fromListName, cardName) {
   try {
     const card = await findCard(cardID, fromListName);
