@@ -29,7 +29,7 @@
 <p></p>
 <p>Next steps are to use Postman to create requests using a Trello API to track metrics.</p>
 <p>Create a Trello Account that allows you to use an API Key and Token</p>
-<p>Once you have those 2 things you can know to use Postman to create requests in order to render data from your Trello Board or Card</p>
+<p>Once you have those 2 things you can now to use Postman to create requests in order to render data from your Trello Board or Card</p>
 <p>Use this link for documentation on Trello APIs here: <a href="https://developer.atlassian.com/cloud/trello/rest/api-group-actions/#api-group-actions">Get Action of Trello Boards and Cards</a></p>
 <p>Next steps are to create a webhook with an endpoint so that you can get updated on when a card moves from list A to list B using this link: <a href="https://developer.atlassian.com/cloud/trello/rest/api-group-webhooks/#api-group-webhooks">Trello API Web-hook documentation</a></p>
 <p>Make sure to deploy the web application using heroku</p>
