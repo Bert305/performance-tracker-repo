@@ -1,7 +1,7 @@
 # Metrics Performance Tracker
 
 
-<h1>Start Server: $npm run start</h1>
+<h1>Start Server: $npm start</h1>
 <br/>
 <hr/>
 <h1>What this does</h1>
