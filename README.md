@@ -2,6 +2,8 @@
 
 
 <h1>Start Server: $npm start</h1>
+<p></p>
+<p>Project Documentation: <a href="https://docs.google.com/document/d/1MFo7BxPREnEaGTacnuZ0csPthNkpZpVIiZb6sHtwu2E/edit?tab=t.0">LINK</a></p>
 <br/>
 <hr/>
 <h1>What this does</h1>
