@@ -90,7 +90,10 @@ app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve t
 // app.use('/api/user', myRoutes)
 
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+  res.render('login.pug', {
+    title: 'Express Pug',
+    message: 'This is another sample page'
+  });
   });
 
 app.use('/team-members', userRoutes);
