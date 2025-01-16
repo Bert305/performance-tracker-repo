@@ -2,128 +2,29 @@ doctype html
 html
     head
         title Dashboard
-        link(rel='stylesheet', href='../stylesheets/style.css')
-        script.
-            function filterUsersAndTeams() {
-                var username = document.getElementById('username').value.toLowerCase();
-                var teamname = document.getElementById('teamname').value.toLowerCase();
-                var users = document.querySelectorAll('tbody tr.user-row');
-                var teams = document.querySelectorAll('tbody tr.team-row');
-
-                users.forEach(function(user) {
-                    var userName = user.querySelector('.username').textContent.toLowerCase();
-                    var teamName = user.querySelector('.teamname').textContent.toLowerCase();
-                    if (userName.includes(username) && teamName.includes(teamname)) {
-                        user.style.display = '';
-                    } else {
-                        user.style.display = 'none';
-                    }
-                });
-
-                teams.forEach(function(team) {
-                    var teamName = team.querySelector('.teamname').textContent.toLowerCase();
-                    if (teamName.includes(teamname)) {
-                        team.style.display = '';
-                    } else {
-                        team.style.display = 'none';
-                    }
-                });
-            }
-
-            function removeUser(button) {
-                var row = button.closest('tr');
-                row.parentNode.removeChild(row);
-            }
+        link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
     body
-        .centered-content
-            header
-                h1 User Dashboard
-            main
-                input(type='text', id='username', placeholder='Filter by username', oninput='filterUsersAndTeams()')
-                input(type='text', id='teamname', placeholder='Filter by team name', oninput='filterUsersAndTeams()')
-                - var users = users || [];
-                - var teams = teams || [];
-                if users.length
-                    table
-                        thead
+        .container
+            h1 User Dashboard
+            table.table
+                thead
+                    tr
+                        th(scope="col") Rank
+                        th(scope="col") Teammates
+                        th(scope="col") Email
+                        th(scope="col") Team
+                tbody
+                    if typeof users !== 'undefined' && users.length
+                        each user, index in users
                             tr
-                                th User Name
-                                th Full Name
-                                th Email
-                                th Image
-                                th Task Details
-                                th Team Name
-                                th Actions
-                        tbody
-                            each user in users
-                                tr.user-row
-                                    td.username= user.username
-                                    td= user.firstName + ' ' + user.lastName
-                                    td= user.email
-                                    td
-                                        if user.image
-                                            img(src=user.image, alt='User Image', width='50', height='50')
-                                        else
-                                            p No image available
-                                    td
-                                        if user.tasks.length
-                                            table
-                                                thead
-                                                    tr
-                                                        th Task Name
-                                                        th Description
-                                                        th Assigned Date
-                                                        th Due Date
-                                                        th Complexity
-                                                tbody
-                                                    each task in user.tasks
-                                                        tr
-                                                            td= task.taskName
-                                                            td= task.description
-                                                            td= task.assignedDate
-                                                            td= task.dueDate
-                                                            td= task.complexity
-                                        else
-                                            p No tasks assigned.
-                                    td
-                                        if user.performanceMetrics
-                                            table
-                                                thead
-                                                    tr
-                                                        th Quality Score
-                                                        th Quantity Score
-                                                        th Overall Score
-                                                tbody
-                                                    each metric, value in user.performanceMetrics
-                                                        tr
-                                                            td= metric.qualityScore
-                                                            td= metric.quantityScore
-                                                            td= metric.overallScore
-                                        else
-                                            p No performance metrics available.
-                                    td.teamname= user.teamName
-                                    td
-                                        button(onclick='removeUser(this)') Remove
-                else
-                    p No users found.
-                
-                if teams.length
-                    h2 Teams
-                    table
-                        thead
-                            tr
-                                th Team Names
-                                th Members
-                        tbody
-                            each team in teams
-                                tr.team-row
-                                    td.teamname= team.teamName
-                                    td
-                                        if team.members.length
-                                            ul
-                                                each member in team.members
-                                                    li= member.firstName + ' ' + member.lastName
-                                        else
-                                            p No members available.
-                else
-                    p No teams available.
+                                th(scope="row")= index + 1
+                                td
+                                    img(src=user.image, alt='User Image', width='50', height='50', class='rounded-circle me-2')
+                                    | #{user.firstName} #{user.lastName}
+                                td= user.email
+                                td= user.teamName ? user.teamName : 'No team'
+                    else
+                        tr
+                            td(colspan="4") No users found
+
+        script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")

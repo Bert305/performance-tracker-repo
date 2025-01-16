@@ -3,16 +3,10 @@ const Team = require('../Module/teamSchema');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-
-
-
-
 //GET Request -> http://localhost:5000/team-members/test
 const test = (req, res) => {
     res.send('Test route, Hello World!');
 }
-
-
 
 // Register new team member
 //POST Request -> http://localhost:5000/team-members/register
@@ -32,6 +26,11 @@ const createTeamMember = async (req, res) => {
         const { username, password, firstName, lastName, email, image, teamID } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        const team = await Team.findById(teamID);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
         const newTeamMember = new TeamMember({
             username,
             password: hashedPassword,
@@ -39,7 +38,8 @@ const createTeamMember = async (req, res) => {
             lastName,
             email,
             image,
-            teamID
+            teamID,
+            teamName: team.teamName
         });
         await newTeamMember.save();
         res.status(201).json(newTeamMember);
@@ -47,9 +47,6 @@ const createTeamMember = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-
-
 
 // Login team member
 // POST Request -> http://localhost:5000/team-members/login
@@ -221,7 +218,7 @@ const getAllTeamInfo = async (req, res) => {
         // Populate the team information for each team member
         // What requests are being made here on postman?
         const teamMembersInfo = await TeamMember.find({ teamID: team._id })
-            .select('firstName lastName email image tasks performanceMetrics teamID')
+            .select('firstName lastName email image tasks performanceMetrics teamID teamName')
             .populate('teamID', 'teamName')  // Populate team information
             .exec();
 
