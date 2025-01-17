@@ -34,6 +34,7 @@ const createTeam = async (req, res) => {
 //     "email": "john.doe@example.com",
 //     "image": "http://example.com/profile.png",      // Image URL
 //     "teamID": "64ebbc0b3d7d933b89a0f7d2"        // Team ID
+//     "teamName" : "Development Team" // Team Name
 // }
 
 

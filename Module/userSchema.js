@@ -22,7 +22,7 @@ const TeamMemberSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     image: { type: String },
     teamID: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
-    teamName: { type: String }, // Add team name field
+    teamName: { type: String }, // Change teamName to String type
     tasks: [TaskSchema],
     performanceMetrics: PerformanceMetricSchema
 });

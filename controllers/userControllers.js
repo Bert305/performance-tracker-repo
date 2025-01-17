@@ -23,13 +23,8 @@ const test = (req, res) => {
 const createTeamMember = async (req, res) => {
     console.log(req.body);
     try {
-        const { username, password, firstName, lastName, email, image, teamID } = req.body;
+        const { username, password, firstName, lastName, email, image} = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        const team = await Team.findById(teamID);
-        if (!team) {
-            return res.status(404).json({ message: 'Team not found' });
-        }
 
         const newTeamMember = new TeamMember({
             username,
@@ -37,9 +32,7 @@ const createTeamMember = async (req, res) => {
             firstName,
             lastName,
             email,
-            image,
-            teamID,
-            teamName: team.teamName
+            image
         });
         await newTeamMember.save();
         res.status(201).json(newTeamMember);
