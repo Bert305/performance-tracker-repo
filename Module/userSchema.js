@@ -5,7 +5,8 @@ const TaskSchema = new mongoose.Schema({
     description: { type: String },
     assignedDate: { type: Date, default: Date.now },
     dueDate: { type: Date },
-    complexity: { type: Number, required: true }
+    complexity: { type: Number, required: true },
+    status: { type: String, enum: ['todo', 'inProgress', 'done'], default: 'todo' } // Add status to track progress
 });
 
 const PerformanceMetricSchema = new mongoose.Schema({
@@ -14,7 +15,7 @@ const PerformanceMetricSchema = new mongoose.Schema({
     overallScore: { type: Number, required: true }
 });
 
-const TeamMemberSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     firstName: { type: String, required: true },
@@ -24,12 +25,16 @@ const TeamMemberSchema = new mongoose.Schema({
     teamID: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
     teamName: { type: String }, // Change teamName to String type
     tasks: [TaskSchema],
-    performanceMetrics: PerformanceMetricSchema
+    performanceMetrics: PerformanceMetricSchema,
+    role: { type: String, enum: ['admin', 'user'], default: 'user' },
+    totalSprintTickets: { type: Number, default: 0 }, // Total tickets in the sprint
+    inProgressTickets: { type: Number, default: 0 }, // Tickets currently in progress
+    doneTickets: { type: Number, default: 0 } // Tickets marked as done
 });
 
-const TeamMember = mongoose.model('TeamMember', TeamMemberSchema);
+const User = mongoose.model('User', userSchema);
 
-module.exports = TeamMember;
+module.exports = User;
 
 
 

@@ -77,13 +77,50 @@ const login = async (req, res) => {
 // GET Request -> http://localhost:5000/team-members/:id
 const getTeamMemberById = async (req, res) => {
     try {
-        const teamMember = await TeamMember.findById(req.params.id).populate('teamID');
-        if (!teamMember) return res.status(404).json({ message: 'Team member not found' });
-        res.json(teamMember);
+        // Find the team member by ID
+        const teamMember = await TeamMember.findById(req.params.id)
+            .select('-password') // Exclude the password field
+            .populate({
+                path: 'tasks',
+                select: 'taskName description complexity status assignedDate'
+            }) // Populate tasks if it's a reference
+            .populate({
+                path: 'teamID',
+                select: 'teamName'
+            }); // Populate team information
+
+        // If no team member is found, return a 404 status
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        // Log the team member data for debugging
+        console.log('Team Member Data:', teamMember);
+
+        // Return the team member data as a JSON response
+        res.status(200).json({
+            _id: teamMember._id,
+            username: teamMember.username,
+            firstName: teamMember.firstName,
+            lastName: teamMember.lastName,
+            email: teamMember.email,
+            image: teamMember.image,
+            role: teamMember.role,
+            totalSprintTickets: teamMember.totalSprintTickets,
+            inProgressTickets: teamMember.inProgressTickets,
+            doneTickets: teamMember.doneTickets,
+            tasks: teamMember.tasks,
+            teamID: teamMember.teamID // Team information, if populated
+        });
     } catch (error) {
+        console.error('Error fetching team member:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
+
+
+
+
 
 // Update team member
 // PUT Request -> http://localhost:5000/team-members/:id
@@ -107,53 +144,213 @@ const deleteTeamMember = async (req, res) => {
     }
 };
 
-// Add task to team member
-// POST Request -> http://localhost:5000/team-members/:id/tasks
 
-// Body for Postman
-// { "taskName": "Design API",
-// "description": "Design and implement the REST API for the project",
-// "assignedDate": "2024-09-01T00:00:00.000Z", year-month-date
-// "dueDate": "2024-09-15T00:00:00.000Z",
-// "complexity": 5 }
+const updateTicketCountersHelper = async (userId) => {
+    const user = await TeamMember.findById(userId);
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    const totalTickets = user.tasks.length;
+    const inProgressTickets = user.tasks.filter(task => task.status === 'inProgress').length;
+    const doneTickets = user.tasks.filter(task => task.status === 'done').length;
+
+    user.totalSprintTickets = totalTickets;
+    user.inProgressTickets = inProgressTickets;
+    user.doneTickets = doneTickets;
+
+    await user.save();
+};
+
+
+//Put Request -> http://localhost:5000/team-members/:id/update-ticket-counters
+const updateTicketCounters = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Call the helper function to update ticket counters
+        await updateTicketCountersHelper(userId);
+
+        // Fetch the updated user
+        const user = await TeamMember.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: 'Ticket counters updated successfully',
+            totalSprintTickets: user.totalSprintTickets,
+            inProgressTickets: user.inProgressTickets,
+            doneTickets: user.doneTickets
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+//Post Request -> http://localhost:5000/team-members/:id/tasks
+// {
+//     "taskName": "Build Frontend",
+//     "description": "Develop the user interface for the project",
+//     "startDate": "2025-01-20",
+//     "endDate": "2025-01-25",
+//     "complexity": 3,
+//     "status": "inProgress" --> (todo, inProgress, done)
+// }
 const addTask = async (req, res) => {
     try {
+        const { taskName, description, startDate, endDate, complexity, status } = req.body;
+
+        // Validate required fields
+        if (!taskName || !complexity || !status) {
+            return res.status(400).json({ message: 'taskName, complexity, and status are required' });
+        }
+
+        if (!['todo', 'inProgress', 'done'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status value' });
+        }
+
         const teamMember = await TeamMember.findById(req.params.id);
-        teamMember.tasks.push(req.body);
+
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        // Add the task to the team member's tasks
+        teamMember.tasks.push({ taskName, description, startDate, endDate, complexity, status });
+
+        // Save the user and update counters
         await teamMember.save();
-        res.json(teamMember);
+        await updateTicketCountersHelper(req.params.id);
+
+        res.status(200).json({
+            message: 'Task added successfully',
+            tasks: teamMember.tasks,
+            totalSprintTickets: teamMember.totalSprintTickets,
+            inProgressTickets: teamMember.inProgressTickets,
+            doneTickets: teamMember.doneTickets
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Update task
-// PUT Request -> http://localhost:5000/team-members/:id/tasks/:taskId
+
+
+//Put Request -> http://localhost:5000/team-members/:id/tasks/:taskId
+// {
+//     "taskName": "Update Backend API",
+//     "description": "Enhance API functionality and improve performance",
+//     "startDate": "2025-02-01",
+//     "endDate": "2025-02-10",
+//     "complexity": 4,
+//     "status": "inProgress" --> (todo, inProgress, done)
+// }
+
 const updateTask = async (req, res) => {
     try {
+        // Validate input
+        if (!req.body.taskName && !req.body.status && !req.body.description) {
+            return res.status(400).json({ message: 'At least one field is required to update the task' });
+        }
+
+        // Find the team member
         const teamMember = await TeamMember.findById(req.params.id);
+
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        // Find the task
         const task = teamMember.tasks.id(req.params.taskId);
+
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        // Validate task status
+        if (req.body.status && !['todo', 'inProgress', 'done'].includes(req.body.status)) {
+            return res.status(400).json({ message: 'Invalid task status' });
+        }
+
+        // Update the task
         Object.assign(task, req.body);
+
+        // Save changes and update counters
         await teamMember.save();
-        res.json(task);
+        await updateTicketCountersHelper(req.params.id);
+
+        res.status(200).json({
+            message: 'Task updated successfully',
+            task,
+            totalSprintTickets: teamMember.totalSprintTickets,
+            inProgressTickets: teamMember.inProgressTickets,
+            doneTickets: teamMember.doneTickets
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Delete task
-// DELETE Request -> http://localhost:5000/team-members/:id/tasks/:taskId
+//Delete Request -> http://localhost:5000/team-members/:id/tasks/:taskId
 const deleteTask = async (req, res) => {
     try {
         const teamMember = await TeamMember.findById(req.params.id);
-        teamMember.tasks.id(req.params.taskId).remove();
+
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        const task = teamMember.tasks.id(req.params.taskId);
+
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        // Remove the task from the tasks array
+        task.remove();
+
+        // Save the updated team member and update ticket counters
         await teamMember.save();
-        res.json({ message: 'Task removed' });
+        await updateTicketCountersHelper(req.params.id); // Use the helper function for ticket counters
+
+        res.status(200).json({
+            message: 'Task removed successfully',
+            totalSprintTickets: teamMember.totalSprintTickets,
+            inProgressTickets: teamMember.inProgressTickets,
+            doneTickets: teamMember.doneTickets
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
+
+//Get Request -> http://localhost:5000/team-members/:id/ticket-metrics
+const getTicketMetrics = async (req, res) => {
+    try {
+        const teamMember = await TeamMember.findById(req.params.id);
+
+        if (!teamMember) {
+            return res.status(404).json({ message: 'Team member not found' });
+        }
+
+        res.status(200).json({
+            totalSprintTickets: teamMember.totalSprintTickets,
+            inProgressTickets: teamMember.inProgressTickets,
+            doneTickets: teamMember.doneTickets
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+
+
+//------------------------//May not need this function. Will keep for now depending on tests ----------------------------------------------
 // Add performance metrics
 // PUT Request -> http://localhost:5000/team-members/:id/performance-metrics
 
@@ -193,33 +390,25 @@ const addPerformanceMetrics = async (req, res) => {
 // GET Request -> http://localhost:5000/team-members/:id/team-info
 const getAllTeamInfo = async (req, res) => {
     try {
-        // Find the logged-in team member by ID
-        const teamMember = await TeamMember.findById(req.params.id);
+        // Find all team members
+        const teamMembers = await TeamMember.find();
 
-        if (!teamMember) {
-            return res.status(404).json({ message: 'Team member not found' });
+        // If no team members are found, return a 404 status
+        if (!teamMembers) {
+            return res.status(404).json({ message: 'No team members found' });
         }
 
-        // Find the team they belong to and populate team members
-        const team = await Team.findById(teamMember.teamID).populate('members');
+        // Log the data for debugging
+        console.log('Team Members Data:', teamMembers);
 
-        if (!team) {
-            return res.status(404).json({ message: 'Team not found' });
-        }
-
-        // Get all team members from the same team, including their tasks and performance metrics
-        // Populate the team information for each team member
-        // What requests are being made here on postman?
-        const teamMembersInfo = await TeamMember.find({ teamID: team._id })
-            .select('firstName lastName email image tasks performanceMetrics teamID teamName')
-            .populate('teamID', 'teamName')  // Populate team information
-            .exec();
-
-        res.json(teamMembersInfo);
+        // Send the response as a JSON object
+        res.status(200).json(teamMembers);
     } catch (error) {
+        console.error('Error fetching team members:', error.message);
         res.status(500).json({ message: error.message });
     }
 };
+
 
 // Logout team member
 // POST Request -> http://localhost:5000/team-members/logout
@@ -241,7 +430,9 @@ module.exports = {
     updateTask,
     deleteTask,
     addPerformanceMetrics,
-    getAllTeamInfo
+    getAllTeamInfo,
+    updateTicketCounters,
+    getTicketMetrics
 }
 
 // const User = require('../Module/userSchema')

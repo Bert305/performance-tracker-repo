@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, addPerformanceMetrics, logout, addTask, updateTask, deleteTask, getAllTeamInfo, teamMembersInfo} = require('../controllers/userControllers')
+const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, addPerformanceMetrics, logout, addTask, updateTask, deleteTask, 
+    getAllTeamInfo, getTicketMetrics, updateTicketCounters, teamMembersInfo} = require('../controllers/userControllers')
 
 // Route for testing
 router.get('/test', test);
@@ -25,6 +26,12 @@ router.put('/:id/performance-metrics', addPerformanceMetrics);
 
 // Get all team members with tasks, team info, and performance metrics
 router.get('/:id/team-info', getAllTeamInfo);
+
+// Get ticket metrics for a specific team member
+router.get('/:id/ticket-metrics', getTicketMetrics);
+
+// Manually update ticket counters for a team member
+router.put('/:id/update-ticket-counters', updateTicketCounters);
 
 
 module.exports = router;
