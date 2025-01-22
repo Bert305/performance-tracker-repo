@@ -6,6 +6,7 @@ html
     body
         .container
             h1.mb-4 User Dashboard
+            - users.sort((a, b) => ((b.doneTickets * (b.tasks.filter(task => task.status === 'done').reduce((sum, task) => sum + task.complexity, 0) / b.doneTickets)) / b.totalSprintTickets * 100) - ((a.doneTickets * (a.tasks.filter(task => task.status === 'done').reduce((sum, task) => sum + task.complexity, 0) / a.doneTickets)) / a.totalSprintTickets * 100))
             each user in users
                 div.d-flex.align-items-center.my-4
                     img(src=user.image, alt='User Image', width='30', height='30', class='rounded-circle ms-2')
@@ -43,5 +44,6 @@ html
 
 
 
+
 //- Make rank based on high score 
-//- Make the graph above the table to calculate the score of each user like on figma
+//- Make the graph above the table to calculate the number of tickets done versus the total number of tickets like on figma
