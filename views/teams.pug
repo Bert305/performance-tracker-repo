@@ -1,0 +1,23 @@
+doctype html
+html
+    head
+        title Register
+        link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
+        style.
+            .full-width {
+                width: 100%;
+            }
+    body
+        .container.d-flex.align-items-center.justify-content-center.min-vh-100
+            .row.w-100
+                .col-md-6.d-flex.flex-column.align-items-center
+                    h1.text-center.mb-4 Create a Team
+                    form(action="/create-team" method="post" class="full-width")
+                        div.mb-3
+                            label(for="teamName" class="form-label") Team Name:
+                            input(type="text" name="teamName" id="teamName" class="form-control full-width" required)
+                        .d-grid.gap-2
+                            button.btn.btn-primary(type="submit" class="full-width") Create Team
+                .col-md-6.d-flex.align-items-center.justify-content-center
+                    img(src="https://static1.srcdn.com/wordpress/wp-content/uploads/2018/07/Sasuke-Sakura-and-Naruto.png" class="img-thumbnail w-100" alt="")
+script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")

@@ -15,8 +15,8 @@ const path = require('path');
 // Set Pug as the template engine
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-app.get('/sample-pug', (req, res) => {
-  res.render('sample.pug', {
+app.get('/teams-pug', (req, res) => {
+  res.render('teams.pug', {
     title: 'Express Pug',
     message: 'Pug is a template engine for Express'
   });
@@ -35,6 +35,24 @@ app.get('/login-pug', (req, res) => {
 });
 app.get('/create-tasks-pug', (req, res) => {
   res.render('create-tasks.pug', {
+    title: 'Express Pug',
+    message: 'This is another sample page'
+  });
+});
+app.get('/user-account-pug', (req, res) => {
+  res.render('account.pug', {
+    title: 'Express Pug',
+    message: 'This is another sample page'
+  });
+});
+app.get('/edit-account-pug', (req, res) => {
+  res.render('edit-account.pug', {
+    title: 'Express Pug',
+    message: 'This is another sample page'
+  });
+});
+app.get('/edit-tasks-pug', (req, res) => {
+  res.render('edit-tasks.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });

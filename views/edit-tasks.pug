@@ -1,7 +1,7 @@
 doctype html
 html
     head
-        title Create Tasks
+        title Edit Tasks
         link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
         style.
             .full-width {
@@ -11,8 +11,8 @@ html
         .container.d-flex.align-items-center.justify-content-center.min-vh-100
             .row.w-100
                 .col-md-6.d-flex.flex-column.align-items-center
-                    h1.text-center.mb-4 Create Tasks
-                    form(action="/create-tasks" method="post" class="full-width")
+                    h1.text-center.mb-4 Edit Tasks
+                    form(action="/edit-ttasks" method="post" class="full-width")
                         .mb-3
                             label(for="taskName" class="form-label") Task Name:
                             input(type="text" name="taskName" id="taskName" class="form-control full-width" required)
@@ -42,7 +42,7 @@ html
                                 option(value="not started") todo
                                 option(value="in progress") inProgress
                                 option(value="completed") done
-                        button(type="submit" class="btn btn-primary mt-3 full-width") Submit
+                        button(type="submit" class="btn btn-primary mt-3") Save Changes
                 .col-md-6.d-flex.align-items-center.justify-content-center
-                    img(src="https://wallpapers.com/images/hd/naruto-anime-sakura-floating-rocks-bljm3wkng19ctpqy.jpg" class="img-thumbnail w-100" alt="Task Image")
+                    img(src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e6c34bba-090a-4178-b65e-81e7bfa65b5e/dfkobui-98b47e49-6c57-447b-9bd5-53a2cbc48e2a.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2U2YzM0YmJhLTA5MGEtNDE3OC1iNjVlLTgxZTdiZmE2NWI1ZVwvZGZrb2J1aS05OGI0N2U0OS02YzU3LTQ0N2ItOWJkNS01M2EyY2JjNDhlMmEuanBnIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.4xUZoBbRtOWvP6AzO0Km_B_KWpb8_Kx4EhH6B7-_tAM" class="img-thumbnail w-100" alt="Task Image")
         script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
