@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
     doneTickets: { type: Number, default: 0 } // Tickets marked as done
 });
 
+userSchema.methods.comparePassword = function(candidatePassword) {
+    return candidatePassword === this.password;
+}
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

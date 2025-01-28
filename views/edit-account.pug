@@ -12,7 +12,8 @@ html
             .row.w-100
                 .col-md-6.d-flex.flex-column.align-items-center
                     h1.text-center.mb-4 Edit your account
-                    form(action="/edit-account" method="post" class="full-width")
+                    form(action="/edit-account-pug" method="post" class="full-width")
+                        input(type="hidden" name="_method" value="POST")
                         .mb-3
                             label(for="username" class="form-label") Username:
                             input(type="text" name="username" id="username" class="form-control full-width" required)
@@ -33,6 +34,12 @@ html
                             select(name="role" id="role" class="form-control full-width" required)
                                 option(value="user") user
                                 option(value="admin") admin
+                        .mb-3
+                            label(for="teamname" class="form-label") Team Name:
+                            input(type="text" name="teamname" id="teamname" class="form-control full-width" required)
+                        .mb-3
+                            label(for="teamID" class="form-label") Team ID:
+                            input(type="text" name="teamID" id="teamID" class="form-control full-width" required)
                         .d-grid.gap-2
                             button.btn.btn-primary(type="submit" class="full-width") Save Changes
                 .col-md-6.d-flex.align-items-center.justify-content-center

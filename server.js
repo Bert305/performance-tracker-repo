@@ -2,6 +2,7 @@ const express = require('express');//back-end web-framework
 const colors =require('colors')
 const dotenv = require('dotenv').config()//allows to use dotenv
 const connectDB = require('./config/connectDB.js')
+const session = require('express-session');
 const port = process.env.PORT || 5000 
 const app = express() //creates an instance of express
 const axios = require('axios');
@@ -9,48 +10,238 @@ const cors = require("cors");//added recently to help the backend connect to the
 const teamRoutes= require('./routes/teamRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
 const CardMovement = require('./Module/CardMovementSchema.js'); // Adjust the path as necessary
+const User = require('./Module/userSchema.js'); // Adjust the path as necessary
+const Team = require('./Module/teamSchema.js'); // Adjust the path as necessary
 
+
+
+
+
+
+
+
+
+
+
+
+// Session Management Middleware Configuration:
+// This middleware sets up session management for the application using express-session.
+// It handles session state in server memory, enabling user authentication and data persistence across requests.
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // use true if using HTTPS, otherwise set to false
+}));
+
+
+
+
+// Parse JSON bodies (as sent by API clients)
+app.use(express.json());
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(express.urlencoded({ extended: true }));
 const pug = require('pug');
 const path = require('path');
 // Set Pug as the template engine
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
+
+
+// Teams Page
 app.get('/teams-pug', (req, res) => {
   res.render('teams.pug', {
     title: 'Express Pug',
     message: 'Pug is a template engine for Express'
   });
 });
-app.get('/register-pug', (req, res) => {
+app.get('/register-pug', async (req, res) => {
   res.render('register.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });
 });
+
+// Route to handle form submission
+app.post('/register-pug', async (req, res) => {
+  const { username, firstName, lastName, email, image, role, password } = req.body;
+  try {
+    // Create a new user instance
+    const newUser = new User({
+      username,
+      firstName,
+      lastName,
+      email,
+      image,
+      role,
+      password
+    });
+
+    // Save the user to the database
+    await newUser.save();
+
+    console.log('User registered:', req.body);
+    res.send('Registration successful!');
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).send('Error registering user');
+  }
+});
+
 app.get('/login-pug', (req, res) => {
   res.render('login.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });
 });
+
+// Route to handle form submission
+app.post('/login-pug', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    // Find the user by username
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(400).send('User not found');
+    }
+
+    // Check if the password matches
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+      return res.status(400).send('Invalid password');
+    }
+
+    // Set the user ID in the session
+    req.session.userId = user._id;
+
+    console.log('User logged in:', req.body);
+    res.send('Login successful!');
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    res.status(500).send('Error logging in user');
+  }
+});
+
 app.get('/create-tasks-pug', (req, res) => {
   res.render('create-tasks.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });
 });
-app.get('/user-account-pug', (req, res) => {
-  res.render('account.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
-  });
+
+// Route to handle form submission
+app.post('/create-tasks-pug', (req, res) => {
+  // Here you can add logic to save the task data to a database
+  console.log('Task created:', req.body);
+  res.send('Task creation successful!');
 });
+// User Account Page --------------------------HERE!!!---------------------------------
+app.get('/user-account-pug', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send('Please log in');
+  }
+
+  try {
+    const user = await User.findById(req.session.userId).populate({ path: 'team', strictPopulate: false }); // Assuming 'team' is a ref to another model
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    const teams = await Team.find();
+
+    res.render('account.pug', {
+      title: 'User Account',
+      user: user,
+      teams: teams
+    });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).send('Error fetching user data');
+  }
+});
+
+
+
+
+app.post('/user-account-pug', async (req, res) => {
+  if (!req.session.userId) {
+      return res.status(401).send('Please log in');
+  }
+
+  const { teamId, teamName } = req.body; // Extract both team ID and team name from the request
+
+  try {
+      const user = await User.findById(req.session.userId);
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
+
+      // Update the user's team ID and team name
+      user.team = teamId;
+      user.teamName = teamName;
+      await user.save();
+
+      console.log('User team updated:', { teamId, teamName });
+      res.redirect('/user-account-pug'); // Redirect to refresh the page with new data
+  } catch (error) {
+      console.error('Error updating user team:', error);
+      res.status(500).send('Error updating user team');
+  }
+});
+
+
+
+
+
+
+
+
+
 app.get('/edit-account-pug', (req, res) => {
   res.render('edit-account.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });
 });
+
+app.post('/edit-account-pug', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send('Please log in');
+  }
+
+  const { username, firstName, lastName, email, image, role, password, teamName, teamID } = req.body;
+
+  try {
+    const user = await User.findById(req.session.userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    user.username = username || user.username;
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.email = email || user.email;
+    user.image = image || user.image;
+    user.role = role || user.role;
+    user.password = password || user.password;
+    user.teamName = teamName || user.teamName;
+    user.teamID = teamID || user.teamID;
+
+    await user.save();
+
+    console.log('User updated:', req.body);
+    res.send('Account updated successfully!');
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).send('Error updating user');
+  }
+});
+
+
+
+
 app.get('/edit-tasks-pug', (req, res) => {
   res.render('edit-tasks.pug', {
     title: 'Express Pug',
@@ -93,12 +284,14 @@ app.get('/dashboard-pug', async (req, res) => {
 // });
 
 
-connectDB()//connects our Atlas cluster
+connectDB().then(() => {
+  console.log('Database connected successfully');
+}).catch((error) => {
+  console.error('Database connection error:', error);
+});
 
 app.use(cors());//needed to execute cors
 const bodyParser = require('body-parser'); 
-const User = require('./Module/userSchema.js'); // Adjust the path as necessary
-const Team = require('./Module/teamSchema.js'); // Adjust the path as necessary
 
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve testing on postman
