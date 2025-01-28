@@ -1,50 +1,57 @@
-div.container(style="margin-top: 200px;")
-    div.row.justify-content-center
-        div.card(style="width: 18rem;")
-            if user.image
-                img.card-img-top(src=user.image alt="User Image")
-            else
-                img.card-img-top(src="default-image.jpg" alt="Default Image")
-            div.card-body
-                h5.card-title #{user.username}
-                p.card-text
-                    | First Name: #{user.firstName}
-                    br
-                    | Last Name: #{user.lastName}
-                    br
-                    | Email: #{user.email}
-            ul.list-group.list-group-flush
-                li.list-group-item #{'Email: ' + user.email}
-                li.list-group-item #{'Role: ' + user.role}
-                li.list-group-item #{'Current Team: ' + (user.teamName ? user.teamName : 'No team assigned')}
-            div.card-body
-                a.card-link(href="/teams-pug") Create a Team
-                a.card-link(href="/edit-account-pug") Edit Account 
-                a.card-link(href="/create-tasks-pug") Create a Task 
+doctype html
+html
+    head
+        title #{title}
+        script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
+        link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
 
-div.card-body
-    form(action="/user-account-pug" method="post")
-        div.mb-3
-            label(for="teamSelect" class="form-label") Select Team
-            select#teamSelect.form-select(name="teamId" onchange="updateTeamName()")
-                if teams && teams.length > 0
-                    each team in teams
-                        option(value=team._id data-name=team.name)= team.name
-                else
-                    option No teams available
-        input(type="hidden" name="teamName" id="teamName")
-        p#teamNamePlaceholder Team Name: #{user.teamName ? user.teamName : 'No team assigned'}
-        button.btn.btn-primary(type="submit") Assign Team
+    body
+        .container(style="margin-top: 200px;")
+            .row.justify-content-center
+                .card(style="width: 18rem;")
+                    if user.image
+                        img.card-img-top(src=user.image alt="User Image")
+                    else
+                        img.card-img-top(src="default-image.jpg" alt="Default Image")
+                    .card-body
+                        h5.card-title #{user.username}
+                        p.card-text
+                            | First Name: #{user.firstName}
+                            br
+                            | Last Name: #{user.lastName}
+                            br
+                            | Email: #{user.email}
+                    ul.list-group.list-group-flush
+                        li.list-group-item #{'Email: ' + user.email}
+                        li.list-group-item #{'Role: ' + user.role}
+                        li.list-group-item #{'Current Team: ' + (user.teamID ? user.teamID.teamName : 'No team assigned')}
+                    .card-body
+                        a.card-link(href="/teams-pug") Create a Team
+                        a.card-link(href="/edit-account-pug") Edit Account 
+                        a.card-link(href="/create-tasks-pug") Create a Task 
 
-script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
-link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
+                .card-body
+                    form(action="/user-account-pug" method="post")
+                        .mb-3
+                            label(for="teamSelect" class="form-label") Select Team
+                            select#teamSelect.form-select(name="teamId" onchange="updateTeamName()")
+                                if teams && teams.length > 0
+                                    each team in teams
+                                        option(value=team._id selected=(team._id.toString() === user.teamID._id.toString()))= team.teamName
+                                else
+                                    option No teams available
+                        input(type="hidden" name="teamName" id="teamName" value=(user.teamID ? user.teamID.teamName : ''))
+                        p#teamNamePlaceholder Team Name: #{user.teamID ? user.teamID.teamName : 'No team assigned'}
+                        button.btn.btn-primary(type="submit") Assign Team
 
-script.
-    function updateTeamName() {
-        var teamSelect = document.getElementById('teamSelect');
-        var teamNameInput = document.getElementById('teamName');
-        var selectedOption = teamSelect.options[teamSelect.selectedIndex];
-        var teamNamePlaceholder = document.getElementById('teamNamePlaceholder');
-        teamNamePlaceholder.innerText = 'Team Name: ' + selectedOption.getAttribute('data-name');
-    }
+        script.
+            function updateTeamName() {
+                var teamSelect = document.getElementById('teamSelect');
+                var teamNameInput = document.getElementById('teamName');
+                var selectedOption = teamSelect.options[teamSelect.selectedIndex];
+                var teamNamePlaceholder = document.getElementById('teamNamePlaceholder');
+                teamNamePlaceholder.innerText = 'Team Name: ' + selectedOption.text;
+                teamNameInput.value = selectedOption.text;
+            }
+
     

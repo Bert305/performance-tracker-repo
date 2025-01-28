@@ -55,12 +55,35 @@ app.get('/teams-pug', (req, res) => {
     message: 'Pug is a template engine for Express'
   });
 });
+
+// Route to handle form submission for teams
+app.post('/teams-pug', async (req, res) => {
+  const { teamName } = req.body;
+  try {
+    // Create a new team instance
+    const newTeam = new Team({
+      teamName
+    });
+
+    // Save the team to the database
+    await newTeam.save();
+
+    console.log('Team created:', req.body);
+    res.send(`Team creation successful! Team ID: ${newTeam._id}`);
+  } catch (error) {
+    console.error('Error creating team:', error);
+    res.status(500).send('Error creating team');
+  }
+});
+
+
 app.get('/register-pug', async (req, res) => {
   res.render('register.pug', {
     title: 'Express Pug',
     message: 'This is another sample page'
   });
 });
+
 
 // Route to handle form submission
 app.post('/register-pug', async (req, res) => {
@@ -138,13 +161,37 @@ app.post('/create-tasks-pug', (req, res) => {
   res.send('Task creation successful!');
 });
 // User Account Page --------------------------HERE!!!---------------------------------
+// app.get('/user-account-pug', async (req, res) => {
+//   if (!req.session.userId) {
+//     return res.status(401).send('Please log in');
+//   }
+
+//   try {
+//     const user = await User.findById(req.session.userId).populate({ path: 'team', strictPopulate: false }); // Assuming 'team' is a ref to another model
+//     if (!user) {
+//       return res.status(404).send('User not found');
+//     }
+
+//     const teams = await Team.find();
+
+//     res.render('account.pug', {
+//       title: 'User Account',
+//       user: user,
+//       teams: teams
+//     });
+//   } catch (error) {
+//     console.error('Error fetching user data:', error);
+//     res.status(500).send('Error fetching user data');
+//   }
+// });
+
 app.get('/user-account-pug', async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).send('Please log in');
   }
 
   try {
-    const user = await User.findById(req.session.userId).populate({ path: 'team', strictPopulate: false }); // Assuming 'team' is a ref to another model
+    const user = await User.findById(req.session.userId).populate('teamID');
     if (!user) {
       return res.status(404).send('User not found');
     }
@@ -161,6 +208,7 @@ app.get('/user-account-pug', async (req, res) => {
     res.status(500).send('Error fetching user data');
   }
 });
+
 
 
 
@@ -191,11 +239,36 @@ app.post('/user-account-pug', async (req, res) => {
   }
 });
 
+app.put('/user-account-pug', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send('Please log in');
+  }
 
+  const { teamId } = req.body; // Extract team ID from the request
 
+  try {
+    const user = await User.findById(req.session.userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
 
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res.status(404).send('Team not found');
+    }
 
+    // Update the user's team and team name
+    user.team = teamId;
+    user.teamName = team.teamName;
+    await user.save();
 
+    console.log('User team updated:', { teamId, teamName: team.teamName });
+    res.send('Team updated successfully!');
+  } catch (error) {
+    console.error('Error updating team:', error);
+    res.status(500).send('Error updating team');
+  }
+});
 
 
 
