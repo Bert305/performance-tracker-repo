@@ -12,7 +12,7 @@ html
             .row.w-100
                 .col-md-6.d-flex.flex-column.align-items-center
                     h1.text-center.mb-4 Create Tasks
-                    form(action="/create-tasks" method="post" class="full-width")
+                    form(action="/create-tasks-pug" method="post" class="full-width")
                         .mb-3
                             label(for="taskName" class="form-label") Task Name:
                             input(type="text" name="taskName" id="taskName" class="form-control full-width" required)
@@ -39,9 +39,9 @@ html
                         .mb-3
                             label(for="status" class="form-label") Status:
                             select(name="status" id="status" class="form-control full-width" required)
-                                option(value="not started") todo
-                                option(value="in progress") inProgress
-                                option(value="completed") done
+                                option(value="todo") todo
+                                option(value="inProgress") inProgress
+                                option(value="done") done
                         button(type="submit" class="btn btn-primary mt-3 full-width") Submit
                 .col-md-6.d-flex.align-items-center.justify-content-center
                     img(src="https://wallpapers.com/images/hd/naruto-anime-sakura-floating-rocks-bljm3wkng19ctpqy.jpg" class="img-thumbnail w-100" alt="Task Image")

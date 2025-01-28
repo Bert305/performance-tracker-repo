@@ -154,12 +154,53 @@ app.get('/create-tasks-pug', (req, res) => {
   });
 });
 
-// Route to handle form submission
-app.post('/create-tasks-pug', (req, res) => {
-  // Here you can add logic to save the task data to a database
-  console.log('Task created:', req.body);
-  res.send('Task creation successful!');
+
+// Task Creation Route
+app.post('/create-tasks-pug', async (req, res) => {
+  const { taskName, description, complexity, status } = req.body;
+  const assignedDate = new Date();
+
+  try {
+      const user = await User.findById(req.session.userId);
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
+
+      const task = { taskName, description, complexity, status, assignedDate };
+      user.tasks.push(task);
+      await user.save();
+
+      // Recalculate task metrics after adding the task
+      await recalculateTaskMetrics(req.session.userId);
+
+      res.redirect('/user-account-pug');
+  } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(500).send('Error creating task');
+  }
 });
+
+
+async function recalculateTaskMetrics(userId) {
+  try {
+      const user = await User.findById(userId);
+      if (!user) {
+          console.error('User not found');
+          return;
+      }
+
+      user.totalSprintTickets = user.tasks.length;
+      user.inProgressTickets = user.tasks.filter(task => task.status === 'inProgress').length;
+      user.doneTickets = user.tasks.filter(task => task.status === 'done').length;
+
+      await user.save();
+  } catch (error) {
+      console.error('Error recalculating task metrics:', error);
+  }
+}
+
+
+
 // User Account Page --------------------------HERE!!!---------------------------------
 // app.get('/user-account-pug', async (req, res) => {
 //   if (!req.session.userId) {
