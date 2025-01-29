@@ -54,9 +54,6 @@ html
                             p.card-text.mb-1
                                 strong Last Name: 
                                 | #{user.lastName}
-                            p.card-text.mb-1
-                                strong Email: 
-                                | #{user.email}
                             ul.list-group.list-group-flush.mt-3
                                 li.list-group-item
                                     strong Email:  
@@ -99,41 +96,74 @@ html
                         if user.tasks && user.tasks.length > 0
                             ul.list-group
                                 each task in user.tasks
-                                    li.list-group-item
-                                        h6.text-dark #{task.taskName}
-                                        p.text-muted #{task.description}
-                                        p.text-info
-                                            strong Complexity:  
-                                            | #{task.complexity},  
-                                            strong Status:  
-                                            | #{task.status}
-                                        p.text-secondary
-                                            strong Assigned Date:  
-                                            | #{(task.assignedDate ? task.assignedDate.toDateString() : 'N/A')}
-                                        p.text-success
-                                            strong Sprint Progress:  
-                                            | #{user.totalSprintTickets} Total,  
-                                            | #{user.inProgressTickets} In Progress,  
-                                            | #{user.doneTickets} Done
+                                    li.list-group-item.d-flex.justify-content-between.align-items-center
+                                        .task-details
+                                            h6.text-dark #{task.taskName}
+                                            p.text-muted #{task.description}
+                                            p.text-info
+                                                strong Complexity:  
+                                                | #{task.complexity},  
+                                                strong Status:  
+                                                | #{task.status}
+                                            p.text-secondary
+                                                strong Assigned Date:  
+                                                | #{(task.assignedDate ? task.assignedDate.toDateString() : 'N/A')}
+                                            p.text-success
+                                                strong Sprint Progress:  
+                                                | #{user.totalSprintTickets} Total,  
+                                                | #{user.inProgressTickets} In Progress,  
+                                                | #{user.doneTickets} Done
+                                        button.btn.btn-outline-primary.btn-sm.ml-2(onclick=`removeTask('${task._id}')`) X
+
                         else
                             p.text-center.text-muted No tasks assigned
 
-        script.
-            document.addEventListener('DOMContentLoaded', function() {
-                const teamSelect = document.getElementById('teamSelect');
-                const teamNameInput = document.getElementById('teamName');
-                const teamNameText = document.getElementById('teamNameText');
+        
 
-                teamSelect.addEventListener('change', function() {
-                    const selectedOption = teamSelect.options[teamSelect.selectedIndex];
 
-                    // Update the displayed team name
-                    teamNameText.innerText = selectedOption.text;
-                    teamNameInput.value = selectedOption.text;
+    script.
+        document.addEventListener('DOMContentLoaded', function() {
+            const teamSelect = document.getElementById('teamSelect');
+            const teamNameInput = document.getElementById('teamName');
+            const teamNameText = document.getElementById('teamNameText');
 
-                    console.log(`Selected Team: ${selectedOption.text}`); // Debugging log
-                });
+            teamSelect.addEventListener('change', function() {
+                const selectedOption = teamSelect.options[teamSelect.selectedIndex];
+
+                // Update the displayed team name
+                teamNameText.innerText = selectedOption.text;
+                teamNameInput.value = selectedOption.text;
+
+                console.log(`Selected Team: ${selectedOption.text}`); // Debugging log
             });
+        });
+
+        function removeTask(taskId) {
+            console.log(`Clicked delete for task ID: ${taskId}`);
+            if (confirm('Are you sure you want to remove this task?')) {
+            fetch(`/remove-task/${taskId}`, { // 🔥 Fix: Updated route
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                console.log(`✅ Task ${taskId} removed successfully`);
+                location.reload(); // Reload the page to update UI
+                } else {
+                alert(data.message || 'Failed to remove task');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error:', error);
+                alert('An error occurred while removing the task');
+            });
+            }
+        }
+
+
+
+
+
 
 
 

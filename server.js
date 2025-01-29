@@ -133,6 +133,76 @@ app.post('/register-pug', (req, res) => {
 });
 
 
+
+app.get('/edit-account-pug', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send('Please log in');
+  }
+
+  try {
+    const user = await User.findById(req.session.userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    res.render('edit-account.pug', {
+      title: 'Edit Account',
+      user: user
+    });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).send('Error fetching user data');
+  }
+});
+
+
+
+// edit user account
+const storage2 = multer.diskStorage({
+  destination: 'uploads/',
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload2 = multer({ storage: storage2 });
+
+app.post('/edit-account-pug', upload2.single('image'), async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send('Please log in');
+  }
+
+  try {
+    const { username, firstName, lastName, email, role, password, teamName, teamID } = req.body;
+    let image = req.file ? `/uploads/${req.file.filename}` : undefined; // Store only filename
+
+    const user = await User.findById(req.session.userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // ✅ Update only fields that were provided
+    if (username) user.username = username;
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (image) user.image = image; // Update image only if a new one is uploaded
+    if (role) user.role = role;
+    if (password) user.password = password;
+    if (teamName) user.teamName = teamName;
+    if (teamID) user.teamID = teamID;
+
+    await user.save();
+
+    console.log('User updated:', user);
+    res.redirect('/user-account-pug');
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).send('Error updating user');
+  }
+});
+
+
 app.get('/login-pug', (req, res) => {
   res.render('login.pug', {
     title: 'Express Pug',
@@ -341,47 +411,65 @@ app.put('/user-account-pug', async (req, res) => {
 
 
 
-app.get('/edit-account-pug', (req, res) => {
-  res.render('edit-account.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
-  });
-});
+app.delete('/remove-task/:taskId', async (req, res) => {
+  console.log(`Received DELETE request for task: ${req.params.taskId}`);
 
-app.post('/edit-account-pug', async (req, res) => {
   if (!req.session.userId) {
-    return res.status(401).send('Please log in');
+    console.error("❌ User not logged in");
+    return res.status(401).json({ success: false, message: "Please log in" });
   }
-
-  const { username, firstName, lastName, email, image, role, password, teamName, teamID } = req.body;
 
   try {
     const user = await User.findById(req.session.userId);
     if (!user) {
-      return res.status(404).send('User not found');
+      console.error("❌ User not found in database");
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    user.username = username || user.username;
-    user.firstName = firstName || user.firstName;
-    user.lastName = lastName || user.lastName;
-    user.email = email || user.email;
-    user.image = image || user.image;
-    user.role = role || user.role;
-    user.password = password || user.password;
-    user.teamName = teamName || user.teamName;
-    user.teamID = teamID || user.teamID;
+    // Ensure user has tasks
+    if (!user.tasks || user.tasks.length === 0) {
+      console.error("❌ User has no tasks");
+      return res.status(400).json({ success: false, message: "No tasks found" });
+    }
 
+    // 🔥 Log the current tasks before removing
+    console.log("✅ Before removal:", user.tasks.map(task => task._id.toString()));
+
+    // 🔥 Remove the task
+    const updatedTasks = user.tasks.filter(task => task._id.toString() !== req.params.taskId);
+    
+    // If no task was removed, log it
+    if (updatedTasks.length === user.tasks.length) {
+      console.error("❌ Task not found in user's list");
+      return res.status(404).json({ success: false, message: "Task not found" });
+    }
+
+    user.tasks = updatedTasks;
     await user.save();
 
-    console.log('User updated:', req.body);
-    res.send('Account updated successfully!');
+    // Recalculate task metrics after removing the task
+    await recalculateTaskMetrics(req.session.userId);
+
+    console.log(`✅ Task ${req.params.taskId} removed successfully`);
+    return res.json({ success: true });
   } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).send('Error updating user');
+    console.error('❌ Error removing task:', error);
+    return res.status(500).json({ success: false, message: "Error removing task" });
   }
 });
 
 
+
+
+
+// const storage = multer.diskStorage({
+//   destination: 'uploads/',
+//   filename: function (req, file, cb) {
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+//     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+//   }
+// });
+// const upload = multer({ storage: storage }).single('image');
 
 
 app.get('/edit-tasks-pug', (req, res) => {
