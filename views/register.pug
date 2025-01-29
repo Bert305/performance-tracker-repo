@@ -1,42 +1,48 @@
 doctype html
 html
     head
-        title User Account
+        title Register
         link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
+        style.
+            .full-width {
+                width: 100%;
+            }
     body
-        .container(style="margin-top: 200px;")
-            .row.justify-content-center
-                .card(style="width: 18rem;")
-                    if user.image
-                        img.card-img-top(src=user.image alt="User Image")
-                    else
-                        img.card-img-top(src="default-image.jpg" alt="Default Image")
-                    .card-body
-                        h5.card-title #{user.username}
-                        p.card-text
-                            | First Name: #{user.firstName}
-                            br
-                            | Last Name: #{user.lastName}
-                            br
-                            | Email: #{user.email}
-                        ul.list-group.list-group-flush
-                            li.list-group-item #{'Email: ' + user.email}
-                            li.list-group-item #{'Role: ' + user.role}
-                            li.list-group-item #{'Current Team: ' + (user.team ? user.team.name : 'No team assigned')}
-                        .card-body
-                            form(action="/user-account-pug" method="post")
-                                div.mb-3
-                                    label(for="teamSelect" class="form-label") Select Team:
-                                    select#teamSelect.form-select(name="teamId")
-                                        if teams && teams.length > 0
-                                            each team in teams
-                                                option(value=team._id)= team.name
-                                        else
-                                            option No teams available
-                                button.btn.btn-primary(type="submit") Update Team
-                            a.card-link(href="/teams-pug") Create a Team
-                            a.card-link(href="/edit-account-pug") Edit Account 
-                            a.card-link(href="/create-tasks-pug") Create a Task 
+        .container.d-flex.align-items-center.justify-content-center.min-vh-100
+            .row.w-100
+                .col-md-6.d-flex.flex-column.align-items-center
+                    h1.text-center.mb-4 Register your account
+                    form(action="/register-pug" method="post" enctype="multipart/form-data" class="full-width")
+                        div.mb-3
+                            label(for="username" class="form-label") Username:
+                            input(type="text" name="username" id="username" class="form-control full-width" required)
+                        div.mb-3
+                            label(for="firstName" class="form-label") First Name:
+                            input(type="text" name="firstName" id="firstName" class="form-control full-width" required)
+                        div.mb-3
+                            label(for="lastName" class="form-label") Last Name:
+                            input(type="text" name="lastName" id="lastName" class="form-control full-width" required)
+                        div.mb-3
+                            label(for="email" class="form-label") Email:
+                            input(type="email" name="email" id="email" class="form-control full-width" required)
+                        div.mb-3
+                            label(for="image" class="form-label") Profile Image:
+                            input(type="file" name="image" id="image" class="form-control full-width")
+                        div.mb-3
+                            label(for="role" class="form-label") Role:
+                            select(name="role" id="role" class="form-control full-width" required)
+                                option(value="user") user
+                                option(value="admin") admin
+                        div.mb-3
+                            label(for="password" class="form-label") Password:
+                            input(type="password" name="password" id="password" class="form-control full-width" required)
+                        .d-grid.gap-2
+                            button.btn.btn-primary(type="submit" class="full-width" onclick="window.location.href='/login-pug'") Register
+                .col-md-6.d-flex.align-items-center.justify-content-center
+                    img(src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/fcb36e8f-1bf0-4798-be15-1aab02921650/dfnkiti-c2cb1d66-33cc-4eff-980b-bfee56bad3ab.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2ZjYjM2ZThmLTFiZjAtNDc5OC1iZTE1LTFhYWIwMjkyMTY1MFwvZGZua2l0aS1jMmNiMWQ2Ni0zM2NjLTRlZmYtOTgwYi1iZmVlNTZiYWQzYWIucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.I_voA_t2D3yvVOvd3cFj2Ded-s1Mp0Ph9tlrN8dgRRg" class="img-thumbnail w-100" alt="Placeholder Image")
 script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
+
+
+
 
 

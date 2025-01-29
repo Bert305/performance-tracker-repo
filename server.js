@@ -86,30 +86,52 @@ app.get('/register-pug', async (req, res) => {
 
 
 // Route to handle form submission
-app.post('/register-pug', async (req, res) => {
-  const { username, firstName, lastName, email, image, role, password } = req.body;
-  try {
-    // Create a new user instance
-    const newUser = new User({
-      username,
-      firstName,
-      lastName,
-      email,
-      image,
-      role,
-      password
-    });
-
-    // Save the user to the database
-    await newUser.save();
-
-    console.log('User registered:', req.body);
-    res.send('Registration successful!');
-  } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).send('Error registering user');
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: 'uploads/',
+  filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
+const upload = multer({ storage: storage }).single('image'); // Assuming you're saving files in 'uploads/' directory
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Route to handle form submission
+app.post('/register-pug', (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(500).send('Error uploading file: ' + err);
+    }
+
+    // After file is uploaded, handle the registration process
+    const { username, firstName, lastName, email, role, password } = req.body;
+    // Normalize the file path before saving it to the database
+    const image = req.file ? req.file.path.replace(/\\/g, '/').replace('public/uploads/', '') : '';
+
+    try {
+      const newUser = new User({
+        username,
+        firstName,
+        lastName,
+        email,
+        image,  // Use the normalized image path
+        role,
+        password
+      });
+
+      await newUser.save();
+      console.log('User registered:', req.body);
+      res.redirect('/login-pug'); // Redirect to login page after successful registration
+    } catch (error) {
+      console.error('Error registering user:', error);
+      res.status(500).send('Error registering user');
+    }
+  });
+});
+
 
 app.get('/login-pug', (req, res) => {
   res.render('login.pug', {
@@ -140,7 +162,7 @@ app.post('/login-pug', async (req, res) => {
     req.session.userId = user._id;
 
     console.log('User logged in:', req.body);
-    res.send('Login successful!');
+    res.redirect('/user-account-pug'); // Redirect to user account page after successful login
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).send('Error logging in user');
@@ -232,7 +254,7 @@ app.get('/user-account-pug', async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.session.userId).populate('teamID');
+    const user = await User.findById(req.session.userId).populate('teamID'); // Corrected populate path
     if (!user) {
       return res.status(404).send('User not found');
     }
@@ -254,12 +276,13 @@ app.get('/user-account-pug', async (req, res) => {
 
 
 
+
 app.post('/user-account-pug', async (req, res) => {
   if (!req.session.userId) {
       return res.status(401).send('Please log in');
   }
 
-  const { teamId, teamName } = req.body; // Extract both team ID and team name from the request
+  const { teamId } = req.body; // Extract team ID from the request
 
   try {
       const user = await User.findById(req.session.userId);
@@ -267,12 +290,17 @@ app.post('/user-account-pug', async (req, res) => {
           return res.status(404).send('User not found');
       }
 
-      // Update the user's team ID and team name
+      const team = await Team.findById(teamId);
+      if (!team) {
+          return res.status(404).send('Team not found');
+      }
+
+      // Update the user's team and team name
       user.team = teamId;
-      user.teamName = teamName;
+      user.teamName = team.teamName;
       await user.save();
 
-      console.log('User team updated:', { teamId, teamName });
+      console.log('User team updated:', { teamId, teamName: team.teamName });
       res.redirect('/user-account-pug'); // Redirect to refresh the page with new data
   } catch (error) {
       console.error('Error updating user team:', error);
