@@ -10,6 +10,8 @@ html
   body
     .container.d-flex.align-items-center.justify-content-center.min-vh-100
       .row.w-100
+        .col-12
+          img(src="/uploads/logo.png" alt="Logo" class="img-fluid" style="max-width: 150px; margin-top: 10px;")
         .col-md-6.d-flex.flex-column.align-items-center
           h1.text-center.mb-4 Login to your account
           form(action="/login-pug" method="post" class="full-width" onsubmit="handleLogin(event)")
@@ -20,13 +22,11 @@ html
               label(for="password" class="form-label") Password:
               input(type="password" name="password" id="password" class="form-control full-width" required)
             .d-grid.gap-2
-              button.btn.btn-primary(type="submit" class="full-width") Sign in
+              button.btn(type="submit" class="full-width" style="background-color: #A9D9D0;") Sign in
               p.text-center.mt-3
                 | Don't have an account? 
                 a(href="/register-pug") Sign up
         .col-md-6.d-flex.align-items-center.justify-content-center
-          img(src="https://preview.redd.it/d34uc6cauqi11.png?auto=webp&s=3cec8ccb07189b57d2992d94b9774987ca8f3d5a" class="img-thumbnail w-100" alt="")
+          img(src="/uploads/Rectangle27.png" class="img-thumbnail w-100" alt="")
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
-
-
 
