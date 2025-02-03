@@ -67,7 +67,9 @@ html
                             .card-body.text-center
                                 a.btn.btn-outline-primary(href="/teams-pug") Create a Team
                                 a.btn.btn-outline-secondary(href="/edit-account-pug") Edit Account 
-                                a.btn.btn-outline-success(href="/create-tasks-pug") Create a Task 
+                                a.btn.btn-outline-success(href="/create-tasks-pug") Create a Task
+                                a.btn.btn-outline-danger(href="/logout-pug") Logout
+                                 
 
                 // Team selection form
                 .col-md-4
@@ -85,6 +87,36 @@ html
                                             ) #{team.teamName}
                                     else
                                         option No teams available
+                                script.
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const teamSelect = document.getElementById('teamSelect');
+
+                                        teamSelect.addEventListener('change', function() {
+                                            const selectedOption = teamSelect.options[teamSelect.selectedIndex];
+
+                                            fetch('/update-user-team', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({ teamId: selectedOption.value })
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.success) {
+                                                    console.log(`✅ Team ID ${selectedOption.value} added to user schema successfully`);
+                                                    alert('Team updated successfully!');
+                                                } else {
+                                                    alert(data.message || 'Failed to update team ID');
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('❌ Error:', error);
+                                                alert('An error occurred while updating the team ID');
+                                            });
+                                        });
+                                    });
+
                             input(type="hidden" name="teamName" id="teamName" value=(user.teamID && user.teamID.teamName ? user.teamID.teamName : ''))
                             p.text-center.text-muted Team Name: <span id="teamNameText" class="fw-bold text-primary">#{user.teamName ? user.teamName : 'No team assigned'}</span>
                             button.btn.btn-primary(type="submit") Assign Team

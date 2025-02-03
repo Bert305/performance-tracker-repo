@@ -85,6 +85,19 @@ app.get('/register-pug', async (req, res) => {
 });
 
 
+
+app.get('/logout-pug', function(req, res) {
+  req.session.destroy(function(err) {
+      if (err) {
+          console.error("Error destroying session: ", err);
+          return res.status(500).send("Could not log out.");
+      }
+      res.redirect('/login-pug');
+  });
+});
+
+
+
 // Route to handle form submission
 const multer = require('multer');
 const storage = multer.diskStorage({
@@ -411,6 +424,33 @@ app.put('/user-account-pug', async (req, res) => {
 
 
 
+// Assuming you have Express and your User model imported and set up
+
+// Endpoint to update user's team
+app.post('/update-user-team', async (req, res) => {
+  const { teamId } = req.body; // Get the teamId from the request body
+  const userId = req.session.userId; // Assuming you store logged-in userId in session
+
+  if (!teamId) {
+      return res.status(400).json({ success: false, message: "Team ID is required." });
+  }
+
+  try {
+      // Update the user's teamID in the database
+      const updatedUser = await User.findByIdAndUpdate(userId, { teamID: teamId }, { new: true });
+
+      if (!updatedUser) {
+          return res.status(404).json({ success: false, message: "User not found." });
+      }
+
+      res.json({ success: true, message: "Team updated successfully.", user: updatedUser });
+  } catch (error) {
+      console.error('Update User Team Error:', error);
+      res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
+
 app.delete('/remove-task/:taskId', async (req, res) => {
   console.log(`Received DELETE request for task: ${req.params.taskId}`);
 
@@ -479,22 +519,47 @@ app.get('/edit-tasks-pug', (req, res) => {
   });
 });
 
+
 app.get('/dashboard-pug', async (req, res) => {
   try {
-    const users = await User.find(); // Fetch user data from the database
+      const { teamId } = req.query; // Capture the teamId from the request query parameters
+      let users;
+      const teams = await Team.find(); // Fetch all teams for the dropdown
 
-    const teams = await Team.find(); // Fetch team data from the database
+      if (teamId) {
+          users = await User.find({ teamID: teamId }).populate('teamID'); // Filter users by teamID
+      } else {
+          users = await User.find().populate('teamID'); // Fetch all users if no specific team is selected
+      }
 
-    res.render('dashboard.pug', {
-      title: 'Express Pug',
-      message: 'This is another sample page',
-      users: users, // Pass user data to the template
-      teams: teams  // Pass team data to the template
-    });
+      res.render('dashboard', {
+          users: users,
+          teams: teams
+      });
   } catch (error) {
-    res.status(500).send('Error fetching user data');
+      console.error('Error while fetching dashboard data:', error);
+      res.status(500).send('Error fetching data');
   }
 });
+
+
+
+// app.get('/dashboard-pug', async (req, res) => {
+//   try {
+//     const users = await User.find(); // Fetch user data from the database
+
+//     const teams = await Team.find(); // Fetch team data from the database
+
+//     res.render('dashboard.pug', {
+//       title: 'Express Pug',
+//       message: 'This is another sample page',
+//       users: users, // Pass user data to the template
+//       teams: teams  // Pass team data to the template
+//     });
+//   } catch (error) {
+//     res.status(500).send('Error fetching user data');
+//   }
+// });
 
 // app.get('/dashboard-pug', async (req, res) => {
 //   try {

@@ -6,8 +6,20 @@ html
     body
         .container
             h1.mb-4 User Dashboard
-            - users.sort((a, b) => ((b.doneTickets * (b.tasks.filter(task => task.status === 'done').reduce((sum, task) => sum + task.complexity, 0) / b.doneTickets)) / b.totalSprintTickets * 100) - ((a.doneTickets * (a.tasks.filter(task => task.status === 'done').reduce((sum, task) => sum + task.complexity, 0) / a.doneTickets)) / a.totalSprintTickets * 100))
-            each user in users
+
+            // Dropdown for team filtering
+            .dropdown.mt-3.mb-5
+                button.btn.btn-secondary.dropdown-toggle(type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false")
+                    | Filter by teams
+                ul.dropdown-menu(aria-labelledby="dropdownMenuButton1")
+                    li
+                        a.dropdown-item(href="/dashboard-pug") Refresh
+                    each team in teams
+                        li
+                            a.dropdown-item(href=`/dashboard-pug?teamId=${team._id}`)= team.teamName
+
+            // Existing dashboard content
+            each user in users.filter(user => !selectedTeamId || user.teamId === selectedTeamId)
                 div.d-flex.align-items-center.my-4
                     img(src=user.image, alt='User Image', width='30', height='30', class='rounded-circle ms-2')
                     div.progress.flex-grow-1.ms-3
@@ -24,7 +36,7 @@ html
                         th(scope="col") Team
                 tbody
                     if typeof users !== 'undefined' && users.length
-                        each user, index in users
+                        each user, index in users.filter(user => !selectedTeamId || user.teamId === selectedTeamId)
                             tr
                                 th(scope="row")= index + 1
                                 td
@@ -40,8 +52,6 @@ html
                             td(colspan="7") No users found
 
         script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
-
-
 
 
 
