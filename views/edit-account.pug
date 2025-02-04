@@ -13,19 +13,19 @@ html
                 .col-md-6.d-flex.flex-column.align-items-center
                     h1.text-center.mb-4 Edit your account
                     form(action="/edit-account-pug" method="post" class="full-width")
-                        input(type="hidden" name="_method" value="POST")
+                        input(type="hidden" name="_method" value="PUT")
                         .mb-3
                             label(for="username" class="form-label") Username:
-                            input(type="text" name="username" id="username" class="form-control full-width" value="change username" required)
+                            input(type="text" name="username" id="username" class="form-control full-width" value=user.username required)
                         .mb-3
                             label(for="firstName" class="form-label") First Name:
-                            input(type="text" name="firstName" id="firstName" class="form-control full-width" value="change firstName" required)
+                            input(type="text" name="firstName" id="firstName" class="form-control full-width" value=user.firstName required)
                         .mb-3
                             label(for="lastName" class="form-label") Last Name:
-                            input(type="text" name="lastName" id="lastName" class="form-control full-width" value="change lastName" required)
+                            input(type="text" name="lastName" id="lastName" class="form-control full-width" value=user.lastName required)
                         .mb-3
                             label(for="email" class="form-label") Email:
-                            input(type="email" name="email" id="email" class="form-control full-width" value="change email" required)
+                            input(type="email" name="email" id="email" class="form-control full-width" value=user.email required)
                         .mb-3
                             label(for="role" class="form-label") Role:
                             select(name="role" id="role" class="form-control full-width" required)

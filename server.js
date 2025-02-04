@@ -215,6 +215,41 @@ app.post('/edit-account-pug', upload2.single('image'), async (req, res) => {
   }
 });
 
+app.put('/edit-account-pug', upload2.single('image'), async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send('Please log in');
+  }
+
+  try {
+    const { username, firstName, lastName, email, role, password, teamName, teamID } = req.body;
+    let image = req.file ? `/uploads/${req.file.filename}` : undefined; // Store only filename
+
+    const user = await User.findById(req.session.userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // ✅ Update only fields that were provided
+    if (username) user.username = username;
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (image) user.image = image; // Update image only if a new one is uploaded
+    if (role) user.role = role;
+    if (password) user.password = password;
+    if (teamName) user.teamName = teamName;
+    if (teamID) user.teamID = teamID;
+
+    await user.save();
+
+    console.log('User updated:', user);
+    res.send('User updated successfully');
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).send('Error updating user');
+  }
+});
+
 
 app.get('/login-pug', (req, res) => {
   res.render('login.pug', {
@@ -260,6 +295,31 @@ app.get('/create-tasks-pug', (req, res) => {
 });
 
 
+
+app.get('/edit-task-pug/:taskId', async (req, res) => {
+    try {
+        // Assuming you have some way to identify the correct user; possibly from session or a parameter
+        const user = await User.findOne({"tasks._id": req.params.taskId}); // Find the user with the task
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        const task = user.tasks.id(req.params.taskId); // Get the specific task
+        if (!task) {
+            return res.status(404).send('Task not found');
+        }
+
+        res.render('edit-tasks.pug', { task }); // Pass the task to your Pug template
+    } catch (error) {
+        console.error('Error fetching task:', error);
+        res.status(500).send('Error fetching task data');
+    }
+});
+
+
+
+
+
 // Task Creation Route
 app.post('/create-tasks-pug', async (req, res) => {
   const { taskName, description, complexity, status } = req.body;
@@ -284,6 +344,84 @@ app.post('/create-tasks-pug', async (req, res) => {
       res.status(500).send('Error creating task');
   }
 });
+
+
+
+app.put('/edit-task-pug/:taskId', async (req, res) => {
+  const { taskId } = req.params;
+  const { taskName, description, complexity, status } = req.body;
+
+  try {
+      const user = await User.findById(req.session.userId);
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
+
+      const task = user.tasks.id(taskId); // Fetch the task from the tasks array by ID
+      if (!task) {
+          console.log('Task ID provided:', taskId);
+          console.log('Available Task IDs:', user.tasks.map(t => t._id.toString()));
+          return res.status(404).send('Task not found');
+      }
+
+      // Update task fields
+      task.taskName = taskName || task.taskName;
+      task.description = description || task.description;
+      task.complexity = complexity || task.complexity;
+      task.status = status || task.status;
+
+      await user.save(); // Save changes to user document
+      
+      // Recalculate task metrics after the task has been updated
+      await recalculateTaskMetrics(req.session.userId);
+
+      res.redirect('/user-account-pug'); // Redirect to user account page after successful update
+  } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).send('Error updating task');
+  }
+});
+
+
+
+app.post('/edit-task-pug/:taskId', async (req, res) => {
+  const { taskName, description, complexity, status } = req.body;
+  const userId = req.session.userId; // Assuming you store userId in session
+
+  try {
+      const user = await User.findById(userId).populate('tasks');
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
+
+      const task = user.tasks.id(req.params.taskId); // Find the task by ID
+      if (!task) {
+          return res.status(404).send('Task not found');
+      }
+
+      // Update task fields
+      task.taskName = taskName || task.taskName;
+      task.description = description || task.description;
+      task.complexity = complexity || task.complexity;
+      task.status = status || task.status;
+
+      await user.save(); // Save the user document with the updated task
+
+      // Recalculate and update task metrics
+      await recalculateTaskMetrics(userId);
+
+      res.redirect('/user-account-pug'); // Redirect or respond after successful task update
+  } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).send('Error updating task');
+  }
+});
+
+
+
+
+
+
 
 
 async function recalculateTaskMetrics(userId) {
@@ -512,12 +650,7 @@ app.delete('/remove-task/:taskId', async (req, res) => {
 // const upload = multer({ storage: storage }).single('image');
 
 
-app.get('/edit-tasks-pug', (req, res) => {
-  res.render('edit-tasks.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
-  });
-});
+
 
 
 app.get('/dashboard-pug', async (req, res) => {

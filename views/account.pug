@@ -71,7 +71,6 @@ html
                                 a.btn.btn-outline-danger(href="/logout-pug") Logout
                                 a.btn.btn-outline-info(href="/dashboard-pug" target="_blank") See Dashboard
                                  
-
                 // Team selection form
                 .col-md-4
                     .team-selection
@@ -146,13 +145,12 @@ html
                                                 | #{user.totalSprintTickets} Total,  
                                                 | #{user.inProgressTickets} In Progress,  
                                                 | #{user.doneTickets} Done
-                                        button.btn.btn-outline-primary.btn-sm.ml-2(onclick=`removeTask('${task._id}')`) X
+                                        .task-actions
+                                            button.btn.btn-outline-primary.btn-sm.ml-2(onclick=`editTask('${task._id}')`) Edit
+                                            button.btn.btn-outline-danger.btn-sm.ml-2(onclick=`removeTask('${task._id}')`) X
 
                         else
                             p.text-center.text-muted No tasks assigned
-
-        
-
 
     script.
         document.addEventListener('DOMContentLoaded', function() {
@@ -193,12 +191,7 @@ html
             }
         }
 
-
-
-
-
-
-
-
-
-    
+        function editTask(taskId) {
+            console.log(`Clicked edit for task ID: ${taskId}`);
+            window.location.href = `/edit-task-pug/${taskId}`;
+        }
