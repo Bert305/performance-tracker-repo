@@ -140,6 +140,9 @@ html
                                             p.text-secondary
                                                 strong Assigned Date:  
                                                 | #{(task.assignedDate ? task.assignedDate.toDateString() : 'N/A')}
+                                                br
+                                                strong Due Date:  
+                                                | #{(task.dueDate ? task.dueDate.toDateString() : 'N/A')}
                                             p.text-success
                                                 strong Sprint Progress:  
                                                 | #{user.totalSprintTickets} Total,  

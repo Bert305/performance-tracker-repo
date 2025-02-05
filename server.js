@@ -319,11 +319,11 @@ app.get('/edit-task-pug/:taskId', async (req, res) => {
 
 
 
-
 // Task Creation Route
 app.post('/create-tasks-pug', async (req, res) => {
-  const { taskName, description, complexity, status, dueDate } = req.body;
-  const assignedDate = new Date();
+  const { taskName, description, startDate, endDate, complexity, status } = req.body;
+  const assignedDate = new Date(startDate + 'T23:59:59'); // Use the startDate from the form
+  const dueDate = new Date(endDate + 'T23:59:59'); // Ensure the end date is interpreted correctly
 
   try {
       const user = await User.findById(req.session.userId);
@@ -331,11 +331,12 @@ app.post('/create-tasks-pug', async (req, res) => {
           return res.status(404).send('User not found');
       }
 
-      const task = { taskName, description, complexity, status, assignedDate, dueDate };
+      // Construct the task object including the dueDate
+      const task = { taskName, description, assignedDate, dueDate, complexity, status };
       user.tasks.push(task);
       await user.save();
 
-      // Recalculate task metrics after adding the task
+      // Optionally, recalculate task metrics after adding the task
       await recalculateTaskMetrics(req.session.userId);
 
       res.redirect('/user-account-pug');
@@ -347,9 +348,10 @@ app.post('/create-tasks-pug', async (req, res) => {
 
 
 
+
 app.put('/edit-task-pug/:taskId', async (req, res) => {
   const { taskId } = req.params;
-  const { taskName, description, complexity, status } = req.body;
+  const { taskName, description, startDate, endDate, complexity, status } = req.body;
 
   try {
       const user = await User.findById(req.session.userId);
@@ -364,13 +366,19 @@ app.put('/edit-task-pug/:taskId', async (req, res) => {
           return res.status(404).send('Task not found');
       }
 
-      // Update task fields
+      // Update task fields including handling of date with specified time
       task.taskName = taskName || task.taskName;
       task.description = description || task.description;
+      task.assignedDate = startDate ? new Date(startDate + 'T23:59:59') : task.assignedDate;
+      task.dueDate = endDate ? new Date(endDate + 'T23:59:59') : task.dueDate;
       task.complexity = complexity || task.complexity;
       task.status = status || task.status;
 
       await user.save(); // Save changes to user document
+
+      // Mark the tasks array as modified to help Mongoose detect the change
+      user.markModified('tasks');
+      await user.save();
       
       // Recalculate task metrics after the task has been updated
       await recalculateTaskMetrics(req.session.userId);
@@ -384,12 +392,14 @@ app.put('/edit-task-pug/:taskId', async (req, res) => {
 
 
 
+
+
 app.post('/edit-task-pug/:taskId', async (req, res) => {
-  const { taskName, description, complexity, status } = req.body;
+  const { taskName, description, startDate, endDate, complexity, status } = req.body;
   const userId = req.session.userId; // Assuming you store userId in session
 
   try {
-      const user = await User.findById(userId).populate('tasks');
+      const user = await User.findById(userId);
       if (!user) {
           return res.status(404).send('User not found');
       }
@@ -399,11 +409,16 @@ app.post('/edit-task-pug/:taskId', async (req, res) => {
           return res.status(404).send('Task not found');
       }
 
-      // Update task fields
+      // Update task fields, including assigned and due dates
       task.taskName = taskName || task.taskName;
       task.description = description || task.description;
+      task.assignedDate = startDate ? new Date(startDate + 'T23:59:59') : task.assignedDate;
+      task.dueDate = endDate ? new Date(endDate + 'T23:59:59') : task.dueDate;
       task.complexity = complexity || task.complexity;
       task.status = status || task.status;
+
+      // Use markModified on dates if mongoose does not recognize changes in dates
+      user.markModified('tasks');
 
       await user.save(); // Save the user document with the updated task
 
@@ -416,6 +431,7 @@ app.post('/edit-task-pug/:taskId', async (req, res) => {
       res.status(500).send('Error updating task');
   }
 });
+
 
 
 
