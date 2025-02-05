@@ -4,7 +4,7 @@ const TaskSchema = new mongoose.Schema({
     taskName: { type: String, required: true },
     description: { type: String },
     assignedDate: { type: Date, default: Date.now },
-    dueDate: { type: Date },
+    dueDate: { type: Date},
     complexity: { type: Number, required: true },
     status: { type: String, enum: ['todo', 'inProgress', 'done'], default: 'todo' } // Add status to track progress
 });

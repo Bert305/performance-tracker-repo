@@ -3,6 +3,7 @@ html
   head
     title Login
     link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
+    link(href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet")
     style.
       .full-width {
         width: 100%;
@@ -25,7 +26,8 @@ html
               label(for="password" class="form-label") Password:
               div(class="input-group")
                 input(type="password" name="password" id="password" class="form-control" required)
-                span(class="input-group-text eye-icon" onclick="togglePasswordVisibility()" style="background: url('/uploads/eye.avif') no-repeat center center; background-size: contain;")
+                span.input-group-text
+                  i.fas.fa-eye(style="cursor: pointer;" id="togglePassword" onclick="togglePasswordVisibility()")
             .d-grid.gap-2
               button.btn(type="submit" class="full-width" style="background-color: #A9D9D0;") Sign in
               p.text-center.mt-3
@@ -34,19 +36,19 @@ html
         .col-md-6.d-flex.align-items-center.justify-content-center
           img(src="/uploads/Rectangle27.png" class="img-thumbnail w-100" alt="")
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
-    script.
-      function togglePasswordVisibility() {
-        var passwordInput = document.getElementById('password');
-        var eyeIcon = document.querySelector('.bi');
-        if (passwordInput.type === 'password') {
-          passwordInput.type = 'text';
-          eyeIcon.classList.remove('bi-eye-slash');
-          eyeIcon.classList.add('bi-eye');
-        } else {
-          passwordInput.type = 'password';
-          eyeIcon.classList.remove('bi-eye');
-          eyeIcon.classList.add('bi-eye-slash');
-        }
-      }
+script.
+  function togglePasswordVisibility() {
+    var passwordInput = document.getElementById('password');
+    var eyeIcon = document.getElementById('togglePassword');
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.classList.remove('fa-eye');
+      eyeIcon.classList.add('fa-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.classList.remove('fa-eye-slash');
+      eyeIcon.classList.add('fa-eye');
+    }
+  }
 
 

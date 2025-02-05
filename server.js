@@ -322,7 +322,7 @@ app.get('/edit-task-pug/:taskId', async (req, res) => {
 
 // Task Creation Route
 app.post('/create-tasks-pug', async (req, res) => {
-  const { taskName, description, complexity, status } = req.body;
+  const { taskName, description, complexity, status, dueDate } = req.body;
   const assignedDate = new Date();
 
   try {
@@ -331,7 +331,7 @@ app.post('/create-tasks-pug', async (req, res) => {
           return res.status(404).send('User not found');
       }
 
-      const task = { taskName, description, complexity, status, assignedDate };
+      const task = { taskName, description, complexity, status, assignedDate, dueDate };
       user.tasks.push(task);
       await user.save();
 
@@ -475,7 +475,7 @@ app.get('/user-account-pug', async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.session.userId).populate('teamID'); // Corrected populate path
+    const user = await User.findById(req.session.userId).populate('teamID').populate('tasks'); // Corrected populate path and added tasks
     if (!user) {
       return res.status(404).send('User not found');
     }
