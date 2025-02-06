@@ -1000,7 +1000,7 @@ app.post('/trello-webhook', async (req, res) => {
 app.get('/logs', async (req, res) => {
   try {
       const logs = await Log.find().sort({ timestamp: -1 }).limit(100);
-      res.set('Cache-Control', 'no-store');  // Prevents caching of the page
+      res.set('Cache-Control', 'no-store, max-age=604800'); // Prevents caching of the page and sets max-age to 1 week (604800 seconds)
       res.render('logs', { logs });
   } catch (error) {
       console.error('Failed to fetch logs:', error);
