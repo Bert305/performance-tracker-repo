@@ -935,44 +935,56 @@ fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TR
 //----------------------------This is to check the time stamp of the card movements-------------------------------------
 // Finds an existing card movement document that hasn't been completed yet
 
+const Log = require('./Module/logSchema.js');  // Assume you have a Log model defined elsewhere
+
+
+async function logMessage(message) {
+  const logEntry = new Log({ message });
+  await logEntry.save();
+}
+
 app.post('/trello-webhook', async (req, res) => {
   try {
     const { action } = req.body;
+    const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
 
     if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
       const cardID = action.data.card.id;
       const cardName = action.data.card.name;
       const fromList = action.data.listBefore.name;
       const toList = action.data.listAfter.name;
-      const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });  // Current time in Eastern Standard Time when the card moved
 
-      console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
+      const logMessageText = `Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`;
+      console.log(logMessageText);
+      await logMessage(logMessageText);
 
-      // Ensure the exit timestamp is updated before adding a new movement and calculating time
       try {
         await updateCard(cardID, fromList, { exitTimestamp: timestamp });
         console.log('Exit timestamp updated for:', cardName);
+        await logMessage(`Exit timestamp updated for: ${cardName}`);
       } catch (error) {
         console.error('Error updating card movement:', error);
+        await logMessage(`Error updating card movement: ${error.message}`);
         res.sendStatus(500);
         return;
       }
 
-      // Add a new record for the card entering a new list
       try {
         await addCard(cardID, fromList, toList, cardName, timestamp);
         console.log('New movement added for:', cardName);
+        await logMessage(`New movement added for: ${cardName}`);
       } catch (error) {
         console.error('Error adding card movement:', error);
+        await logMessage(`Error adding card movement: ${error.message}`);
         res.sendStatus(500);
         return;
       }
 
-      // Calculate the time in the previous list
       try {
         await getTimeInList(cardID, fromList, cardName);
       } catch (error) {
         console.error('Error calculating time in list:', error);
+        await logMessage(`Error calculating time in list: ${error.message}`);
         res.sendStatus(500);
         return;
       }
@@ -980,9 +992,72 @@ app.post('/trello-webhook', async (req, res) => {
     res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
   } catch (error) {
     console.error('Error processing webhook:', error);
+    await logMessage(`Error processing webhook: ${error.message}`);
     res.sendStatus(500); // Send an error response if something goes wrong
   }
 });
+
+app.get('/logs', async (req, res) => {
+  try {
+      const logs = await Log.find().sort({ timestamp: -1 }).limit(100);
+      res.set('Cache-Control', 'no-store');  // Prevents caching of the page
+      res.render('logs', { logs });
+  } catch (error) {
+      console.error('Failed to fetch logs:', error);
+      res.status(500).send('Error fetching logs');
+  }
+});
+
+
+
+// app.post('/trello-webhook', async (req, res) => {
+//   try {
+//     const { action } = req.body;
+
+//     if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+//       const cardID = action.data.card.id;
+//       const cardName = action.data.card.name;
+//       const fromList = action.data.listBefore.name;
+//       const toList = action.data.listAfter.name;
+//       const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });  // Current time in Eastern Standard Time when the card moved
+
+//       console.log(`Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`);
+
+//       // Ensure the exit timestamp is updated before adding a new movement and calculating time
+//       try {
+//         await updateCard(cardID, fromList, { exitTimestamp: timestamp });
+//         console.log('Exit timestamp updated for:', cardName);
+//       } catch (error) {
+//         console.error('Error updating card movement:', error);
+//         res.sendStatus(500);
+//         return;
+//       }
+
+//       // Add a new record for the card entering a new list
+//       try {
+//         await addCard(cardID, fromList, toList, cardName, timestamp);
+//         console.log('New movement added for:', cardName);
+//       } catch (error) {
+//         console.error('Error adding card movement:', error);
+//         res.sendStatus(500);
+//         return;
+//       }
+
+//       // Calculate the time in the previous list
+//       try {
+//         await getTimeInList(cardID, fromList, cardName);
+//       } catch (error) {
+//         console.error('Error calculating time in list:', error);
+//         res.sendStatus(500);
+//         return;
+//       }
+//     }
+//     res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
+//   } catch (error) {
+//     console.error('Error processing webhook:', error);
+//     res.sendStatus(500); // Send an error response if something goes wrong
+//   }
+// });
 
 
 function updateCard(cardID, fromListName, updates) {
