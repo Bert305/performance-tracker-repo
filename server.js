@@ -1094,17 +1094,22 @@ async function getTimeInList(cardID, fromListName, cardName) {
   try {
     const card = await findCard(cardID, fromListName);
     if (card && card.entryTimestamp && card.exitTimestamp) {
-      const duration = new Date(card.exitTimestamp).getTime() - new Date(card.entryTimestamp).getTime();
-      const hours = (duration / 3600000).toFixed(2); // 1000 * 60 * 60
+      console.log(`Entry Timestamp: ${card.entryTimestamp}, Exit Timestamp: ${card.exitTimestamp}`); // Debugging line
+
+      const entryDate = new Date(card.entryTimestamp);
+      const exitDate = new Date(card.exitTimestamp);
+      const duration = exitDate.getTime() - entryDate.getTime();
+      const hours = (duration / 3600000).toFixed(2); // Converts milliseconds to hours
 
       console.log(`Card "${cardName}" was in list "${fromListName}" for ${hours} hours`);
     } else {
-      console.log(`Incomplete data for calculating time in list for card "${cardName}". Maybe the exit timestamp has not been set.`);
+      console.log(`Incomplete data for calculating time in list for card "${cardName}". Maybe the exit timestamp has not been set or entry timestamp is missing.`);
     }
   } catch (error) {
-    console.error('Error calculating time in list for card:', cardName, error);
+    console.error(`Error calculating time in list for card "${cardName}":`, error);
   }
 }
+
 
 
 
