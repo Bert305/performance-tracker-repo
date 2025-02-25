@@ -439,7 +439,7 @@ createWebhook() // Call the function to create the webhook
 
 
 
-app.head('/trello-webhook', (req, res) => {
+app.head('/trello-webhook-GS', (req, res) => {
   res.status(200).send();
   console.log('Webhook response received works!');
 });
