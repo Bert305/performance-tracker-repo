@@ -615,59 +615,59 @@ async function logMessage(message) {
 }
 //----Will have to make a copy of this for each board matching the rout of the new webhook-------------------
 //Post Request to see logs from the Performance Tracker Board
-app.post('/trello-webhook', async (req, res) => {
-  try {
-    const { action } = req.body;
-    const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+// app.post('/trello-webhook', async (req, res) => {
+//   try {
+//     const { action } = req.body;
+//     const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
 
-    if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
-      const cardID = action.data.card.id;
-      const cardName = action.data.card.name;
-      const fromList = action.data.listBefore.name;
-      const toList = action.data.listAfter.name;
+//     if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+//       const cardID = action.data.card.id;
+//       const cardName = action.data.card.name;
+//       const fromList = action.data.listBefore.name;
+//       const toList = action.data.listAfter.name;
 
-      const logMessageText = `Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`;
-      console.log(logMessageText);
-      await logMessage(logMessageText);
+//       const logMessageText = `Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`;
+//       console.log(logMessageText);
+//       await logMessage(logMessageText);
 
-      try {
-        await updateCard(cardID, fromList, { exitTimestamp: timestamp });
-        console.log('Exit timestamp updated for:', cardName);
-        await logMessage(`Exit timestamp updated for: ${cardName}`);
-      } catch (error) {
-        console.error('Error updating card movement:', error);
-        await logMessage(`Error updating card movement: ${error.message}`);
-        res.sendStatus(500);
-        return;
-      }
+//       try {
+//         await updateCard(cardID, fromList, { exitTimestamp: timestamp });
+//         console.log('Exit timestamp updated for:', cardName);
+//         await logMessage(`Exit timestamp updated for: ${cardName}`);
+//       } catch (error) {
+//         console.error('Error updating card movement:', error);
+//         await logMessage(`Error updating card movement: ${error.message}`);
+//         res.sendStatus(500);
+//         return;
+//       }
 
-      try {
-        await addCard(cardID, fromList, toList, cardName, timestamp);
-        console.log('New movement added for:', cardName);
-        await logMessage(`New movement added for: ${cardName}`);
-      } catch (error) {
-        console.error('Error adding card movement:', error);
-        await logMessage(`Error adding card movement: ${error.message}`);
-        res.sendStatus(500);
-        return;
-      }
+//       try {
+//         await addCard(cardID, fromList, toList, cardName, timestamp);
+//         console.log('New movement added for:', cardName);
+//         await logMessage(`New movement added for: ${cardName}`);
+//       } catch (error) {
+//         console.error('Error adding card movement:', error);
+//         await logMessage(`Error adding card movement: ${error.message}`);
+//         res.sendStatus(500);
+//         return;
+//       }
 
-      try {
-        await getTimeInList(cardID, fromList, cardName);
-      } catch (error) {
-        console.error('Error calculating time in list:', error);
-        await logMessage(`Error calculating time in list: ${error.message}`);
-        res.sendStatus(500);
-        return;
-      }
-    }
-    res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
-  } catch (error) {
-    console.error('Error processing webhook:', error);
-    await logMessage(`Error processing webhook: ${error.message}`);
-    res.sendStatus(500); // Send an error response if something goes wrong
-  }
-});
+//       try {
+//         await getTimeInList(cardID, fromList, cardName);
+//       } catch (error) {
+//         console.error('Error calculating time in list:', error);
+//         await logMessage(`Error calculating time in list: ${error.message}`);
+//         res.sendStatus(500);
+//         return;
+//       }
+//     }
+//     res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
+//   } catch (error) {
+//     console.error('Error processing webhook:', error);
+//     await logMessage(`Error processing webhook: ${error.message}`);
+//     res.sendStatus(500); // Send an error response if something goes wrong
+//   }
+// });
 
 
 //Post Request to see logs from the GS Board
