@@ -425,27 +425,27 @@ app.get('/dashboard-pug', async (req, res) => {
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
 const fetch2 = require('node-fetch');
-// async function createWebhook() {
-//   console.log(app._router.stack);
-//   try {
-//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-//       description: 'Miami_EdTech - Card Move Webhook',
-//       callbackURL: `${BASE_URL}/trello-webhook-Miami-EdTech`, // replace with your actual URL
-//       idModel: boardId2 // replace with your actual board ID
-//     });
-//     console.log('Webhook created:', response.data);
-//   } catch (error) {
-//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-//   }
-// }
-// createWebhook() // Call the function to create the webhook
+async function createWebhook() {
+  console.log(app._router.stack);
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'Miami_EdTech - Card Move Webhook v2',
+      callbackURL: `${BASE_URL}/trello-webhook-Miami-EdTech-2`, // replace with your actual URL
+      idModel: boardId1 // replace with your actual board ID
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
+createWebhook() // Call the function to create the webhook
 
 
 
-// app.head('/trello-webhook-Miami-EdTech', (req, res) => {
-//   res.status(200).send();
-//   console.log('Webhook response received works!');
-// });
+app.head('/trello-webhook-Miami-EdTech', (req, res) => {
+  res.status(200).send();
+  console.log('Webhook response received works!');
+});
 
 
 // app.post('/trello-webhook', (req, res) => {
@@ -511,14 +511,14 @@ const fetch2 = require('node-fetch');
 
 
 //------------------------------------update webhook--------------------------------------------
-//Update Trello Webhook
+// Update Trello Webhook
 
 // const updateWebhook = async () => {
 //     const apiKey = TRELLO_API_KEY;
 //     const token = TRELLO_TOKEN;
-//     const webhookId = ID;
-//     const newCallbackURL = `${BASE_URL}trello-webhook`;
-//     const newModelID = BOARD_ID;
+//     const webhookId = ID3;
+//     const newCallbackURL = `${BASE_URL}/trello-webhook-Miami-EdTech`;
+//     const newModelID = boardId1;
 
 //      const url = `https://api.trello.com/1/webhooks/${webhookId}`;
 
@@ -716,7 +716,7 @@ app.post('/trello-webhook-GS', async (req, res) => {
 
 //test logs
 //Post Request to see logs from the GS Board
-app.post('/trello-webhook-Miami-EdTech', async (req, res) => {
+app.post('/trello-webhook-Miami-EdTech-2', async (req, res) => {
   try {
     const { action } = req.body;
     const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
