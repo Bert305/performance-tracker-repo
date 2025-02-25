@@ -6,13 +6,19 @@ const session = require('express-session');
 const port = process.env.PORT || 5000 
 const app = express() //creates an instance of express
 const axios = require('axios');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('./Module/userSchema'); // Ensure User model is imported
 const cors = require("cors");//added recently to help the backend connect to the front-end
-const teamRoutes= require('./routes/teamRoutes.js');
+// const teamRoutes= require('./routes/teamRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
 const CardMovement = require('./Module/CardMovementSchema.js'); // Adjust the path as necessary
-const User = require('./Module/userSchema.js'); // Adjust the path as necessary
-const Team = require('./Module/teamSchema.js'); // Adjust the path as necessary
-
+const Log = require('./Module/logSchema.js');
+const TrelloBoard = require('./Module/trelloBoardSchema');
+// const User = require('./Module/userSchema');
+// const TrelloBoard = require('./Module/trelloBoardSchema');
+// const TrelloTicket = require('./Modules/trelloTicketSchema');
+const router = express.Router();
 
 
 
@@ -38,9 +44,9 @@ app.use(session({
 
 
 // Parse JSON bodies (as sent by API clients)
-app.use(express.json());
-// Parse URL-encoded bodies (as sent by HTML forms)
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// // Parse URL-encoded bodies (as sent by HTML forms)
+// app.use(express.urlencoded({ extended: true }));
 const pug = require('pug');
 const path = require('path');
 // Set Pug as the template engine
@@ -48,684 +54,27 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 
-// Teams Page
-app.get('/teams-pug', (req, res) => {
-  res.render('teams.pug', {
-    title: 'Express Pug',
-    message: 'Pug is a template engine for Express'
-  });
-});
 
-// Route to handle form submission for teams
-app.post('/teams-pug', async (req, res) => {
-  const { teamName } = req.body;
-  try {
-    // Create a new team instance
-    const newTeam = new Team({
-      teamName
-    });
 
-    // Save the team to the database
-    await newTeam.save();
 
-    console.log('Team created:', req.body);
-    res.send(`Team creation successful! Team ID: ${newTeam._id}`);
-  } catch (error) {
-    console.error('Error creating team:', error);
-    res.status(500).send('Error creating team');
-  }
-});
 
 
-app.get('/register-pug', async (req, res) => {
-  res.render('register.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
-  });
-});
 
 
 
-app.get('/logout-pug', function(req, res) {
-  req.session.destroy(function(err) {
-      if (err) {
-          console.error("Error destroying session: ", err);
-          return res.status(500).send("Could not log out.");
-      }
-      res.redirect('/login-pug');
-  });
-});
 
 
 
-// Route to handle form submission
-const multer = require('multer');
-const storage = multer.diskStorage({
-  destination: 'uploads/',
-  filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-const upload = multer({ storage: storage }).single('image'); // Assuming you're saving files in 'uploads/' directory
 
-// Serve static files from the 'uploads' directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Route to handle form submission
-app.post('/register-pug', (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      return res.status(500).send('Error uploading file: ' + err);
-    }
 
-    // After file is uploaded, handle the registration process
-    const { username, firstName, lastName, email, role, password } = req.body;
-    // Normalize the file path before saving it to the database
-    const image = req.file ? req.file.path.replace(/\\/g, '/').replace('public/uploads/', '') : '';
 
-    try {
-      const newUser = new User({
-        username,
-        firstName,
-        lastName,
-        email,
-        image,  // Use the normalized image path
-        role,
-        password
-      });
 
-      await newUser.save();
-      console.log('User registered:', req.body);
-      res.redirect('/login-pug'); // Redirect to login page after successful registration
-    } catch (error) {
-      console.error('Error registering user:', error);
-      res.status(500).send('Error registering user');
-    }
-  });
-});
 
 
 
-app.get('/edit-account-pug', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).send('Please log in');
-  }
 
-  try {
-    const user = await User.findById(req.session.userId);
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
 
-    res.render('edit-account.pug', {
-      title: 'Edit Account',
-      user: user
-    });
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-    res.status(500).send('Error fetching user data');
-  }
-});
-
-
-
-// edit user account
-const storage2 = multer.diskStorage({
-  destination: 'uploads/',
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-const upload2 = multer({ storage: storage2 });
-
-app.post('/edit-account-pug', upload2.single('image'), async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).send('Please log in');
-  }
-
-  try {
-    const { username, firstName, lastName, email, role, password, teamName, teamID } = req.body;
-    let image = req.file ? `/uploads/${req.file.filename}` : undefined; // Store only filename
-
-    const user = await User.findById(req.session.userId);
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
-
-    // ✅ Update only fields that were provided
-    if (username) user.username = username;
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
-    if (email) user.email = email;
-    if (image) user.image = image; // Update image only if a new one is uploaded
-    if (role) user.role = role;
-    if (password) user.password = password;
-    if (teamName) user.teamName = teamName;
-    if (teamID) user.teamID = teamID;
-
-    await user.save();
-
-    console.log('User updated:', user);
-    res.redirect('/user-account-pug');
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).send('Error updating user');
-  }
-});
-
-app.put('/edit-account-pug', upload2.single('image'), async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).send('Please log in');
-  }
-
-  try {
-    const { username, firstName, lastName, email, role, password, teamName, teamID } = req.body;
-    let image = req.file ? `/uploads/${req.file.filename}` : undefined; // Store only filename
-
-    const user = await User.findById(req.session.userId);
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
-
-    // ✅ Update only fields that were provided
-    if (username) user.username = username;
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
-    if (email) user.email = email;
-    if (image) user.image = image; // Update image only if a new one is uploaded
-    if (role) user.role = role;
-    if (password) user.password = password;
-    if (teamName) user.teamName = teamName;
-    if (teamID) user.teamID = teamID;
-
-    await user.save();
-
-    console.log('User updated:', user);
-    res.send('User updated successfully');
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).send('Error updating user');
-  }
-});
-
-
-app.get('/login-pug', (req, res) => {
-  res.render('login.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
-  });
-});
-
-// Route to handle form submission
-app.post('/login-pug', async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    // Find the user by username
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(400).send('User not found');
-    }
-
-    // Check if the password matches
-    const isMatch = await user.comparePassword(password);
-
-    if (!isMatch) {
-      return res.status(400).send('Invalid password');
-    }
-
-    // Set the user ID in the session
-    req.session.userId = user._id;
-
-    console.log('User logged in:', req.body);
-    res.redirect('/user-account-pug'); // Redirect to user account page after successful login
-  } catch (error) {
-    console.error('Error logging in user:', error);
-    res.status(500).send('Error logging in user');
-  }
-});
-
-app.get('/create-tasks-pug', (req, res) => {
-  res.render('create-tasks.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
-  });
-});
-
-
-
-app.get('/edit-task-pug/:taskId', async (req, res) => {
-    try {
-        // Assuming you have some way to identify the correct user; possibly from session or a parameter
-        const user = await User.findOne({"tasks._id": req.params.taskId}); // Find the user with the task
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-
-        const task = user.tasks.id(req.params.taskId); // Get the specific task
-        if (!task) {
-            return res.status(404).send('Task not found');
-        }
-
-        res.render('edit-tasks.pug', { task }); // Pass the task to your Pug template
-    } catch (error) {
-        console.error('Error fetching task:', error);
-        res.status(500).send('Error fetching task data');
-    }
-});
-
-
-
-
-// Task Creation Route
-app.post('/create-tasks-pug', async (req, res) => {
-  const { taskName, description, startDate, endDate, complexity, status } = req.body;
-  const assignedDate = new Date(startDate + 'T23:59:59'); // Use the startDate from the form
-  const dueDate = new Date(endDate + 'T23:59:59'); // Ensure the end date is interpreted correctly
-
-  try {
-      const user = await User.findById(req.session.userId);
-      if (!user) {
-          return res.status(404).send('User not found');
-      }
-
-      // Construct the task object including the dueDate
-      const task = { taskName, description, assignedDate, dueDate, complexity, status };
-      user.tasks.push(task);
-      await user.save();
-
-      // Optionally, recalculate task metrics after adding the task
-      await recalculateTaskMetrics(req.session.userId);
-
-      res.redirect('/user-account-pug');
-  } catch (error) {
-      console.error('Error creating task:', error);
-      res.status(500).send('Error creating task');
-  }
-});
-
-
-
-
-app.put('/edit-task-pug/:taskId', async (req, res) => {
-  const { taskId } = req.params;
-  const { taskName, description, startDate, endDate, complexity, status } = req.body;
-
-  try {
-      const user = await User.findById(req.session.userId);
-      if (!user) {
-          return res.status(404).send('User not found');
-      }
-
-      const task = user.tasks.id(taskId); // Fetch the task from the tasks array by ID
-      if (!task) {
-          console.log('Task ID provided:', taskId);
-          console.log('Available Task IDs:', user.tasks.map(t => t._id.toString()));
-          return res.status(404).send('Task not found');
-      }
-
-      // Update task fields including handling of date with specified time
-      task.taskName = taskName || task.taskName;
-      task.description = description || task.description;
-      task.assignedDate = startDate ? new Date(startDate + 'T23:59:59') : task.assignedDate;
-      task.dueDate = endDate ? new Date(endDate + 'T23:59:59') : task.dueDate;
-      task.complexity = complexity || task.complexity;
-      task.status = status || task.status;
-
-      await user.save(); // Save changes to user document
-
-      // Mark the tasks array as modified to help Mongoose detect the change
-      user.markModified('tasks');
-      await user.save();
-      
-      // Recalculate task metrics after the task has been updated
-      await recalculateTaskMetrics(req.session.userId);
-
-      res.redirect('/user-account-pug'); // Redirect to user account page after successful update
-  } catch (error) {
-      console.error('Error updating task:', error);
-      res.status(500).send('Error updating task');
-  }
-});
-
-
-
-
-
-app.post('/edit-task-pug/:taskId', async (req, res) => {
-  const { taskName, description, startDate, endDate, complexity, status } = req.body;
-  const userId = req.session.userId; // Assuming you store userId in session
-
-  try {
-      const user = await User.findById(userId);
-      if (!user) {
-          return res.status(404).send('User not found');
-      }
-
-      const task = user.tasks.id(req.params.taskId); // Find the task by ID
-      if (!task) {
-          return res.status(404).send('Task not found');
-      }
-
-      // Update task fields, including assigned and due dates
-      task.taskName = taskName || task.taskName;
-      task.description = description || task.description;
-      task.assignedDate = startDate ? new Date(startDate + 'T23:59:59') : task.assignedDate;
-      task.dueDate = endDate ? new Date(endDate + 'T23:59:59') : task.dueDate;
-      task.complexity = complexity || task.complexity;
-      task.status = status || task.status;
-
-      // Use markModified on dates if mongoose does not recognize changes in dates
-      user.markModified('tasks');
-
-      await user.save(); // Save the user document with the updated task
-
-      // Recalculate and update task metrics
-      await recalculateTaskMetrics(userId);
-
-      res.redirect('/user-account-pug'); // Redirect or respond after successful task update
-  } catch (error) {
-      console.error('Error updating task:', error);
-      res.status(500).send('Error updating task');
-  }
-});
-
-
-
-
-
-
-
-
-
-async function recalculateTaskMetrics(userId) {
-  try {
-      const user = await User.findById(userId);
-      if (!user) {
-          console.error('User not found');
-          return;
-      }
-
-      user.totalSprintTickets = user.tasks.length;
-      user.inProgressTickets = user.tasks.filter(task => task.status === 'inProgress').length;
-      user.doneTickets = user.tasks.filter(task => task.status === 'done').length;
-
-      await user.save();
-  } catch (error) {
-      console.error('Error recalculating task metrics:', error);
-  }
-}
-
-
-
-// User Account Page --------------------------HERE!!!---------------------------------
-// app.get('/user-account-pug', async (req, res) => {
-//   if (!req.session.userId) {
-//     return res.status(401).send('Please log in');
-//   }
-
-//   try {
-//     const user = await User.findById(req.session.userId).populate({ path: 'team', strictPopulate: false }); // Assuming 'team' is a ref to another model
-//     if (!user) {
-//       return res.status(404).send('User not found');
-//     }
-
-//     const teams = await Team.find();
-
-//     res.render('account.pug', {
-//       title: 'User Account',
-//       user: user,
-//       teams: teams
-//     });
-//   } catch (error) {
-//     console.error('Error fetching user data:', error);
-//     res.status(500).send('Error fetching user data');
-//   }
-// });
-
-app.get('/user-account-pug', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).send('Please log in');
-  }
-
-  try {
-    const user = await User.findById(req.session.userId).populate('teamID').populate('tasks'); // Corrected populate path and added tasks
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
-
-    const teams = await Team.find();
-
-    res.render('account.pug', {
-      title: 'User Account',
-      user: user,
-      teams: teams
-    });
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-    res.status(500).send('Error fetching user data');
-  }
-});
-
-
-
-
-
-
-app.post('/user-account-pug', async (req, res) => {
-  if (!req.session.userId) {
-      return res.status(401).send('Please log in');
-  }
-
-  const { teamId } = req.body; // Extract team ID from the request
-
-  try {
-      const user = await User.findById(req.session.userId);
-      if (!user) {
-          return res.status(404).send('User not found');
-      }
-
-      const team = await Team.findById(teamId);
-      if (!team) {
-          return res.status(404).send('Team not found');
-      }
-
-      // Update the user's team and team name
-      user.team = teamId;
-      user.teamName = team.teamName;
-      await user.save();
-
-      console.log('User team updated:', { teamId, teamName: team.teamName });
-      res.redirect('/user-account-pug'); // Redirect to refresh the page with new data
-  } catch (error) {
-      console.error('Error updating user team:', error);
-      res.status(500).send('Error updating user team');
-  }
-});
-
-app.put('/user-account-pug', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).send('Please log in');
-  }
-
-  const { teamId } = req.body; // Extract team ID from the request
-
-  try {
-    const user = await User.findById(req.session.userId);
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
-
-    const team = await Team.findById(teamId);
-    if (!team) {
-      return res.status(404).send('Team not found');
-    }
-
-    // Update the user's team and team name
-    user.team = teamId;
-    user.teamName = team.teamName;
-    await user.save();
-
-    console.log('User team updated:', { teamId, teamName: team.teamName });
-    res.send('Team updated successfully!');
-  } catch (error) {
-    console.error('Error updating team:', error);
-    res.status(500).send('Error updating team');
-  }
-});
-
-
-
-// Assuming you have Express and your User model imported and set up
-
-// Endpoint to update user's team
-app.post('/update-user-team', async (req, res) => {
-  const { teamId } = req.body; // Get the teamId from the request body
-  const userId = req.session.userId; // Assuming you store logged-in userId in session
-
-  if (!teamId) {
-      return res.status(400).json({ success: false, message: "Team ID is required." });
-  }
-
-  try {
-      // Update the user's teamID in the database
-      const updatedUser = await User.findByIdAndUpdate(userId, { teamID: teamId }, { new: true });
-
-      if (!updatedUser) {
-          return res.status(404).json({ success: false, message: "User not found." });
-      }
-
-      res.json({ success: true, message: "Team updated successfully.", user: updatedUser });
-  } catch (error) {
-      console.error('Update User Team Error:', error);
-      res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-
-app.delete('/remove-task/:taskId', async (req, res) => {
-  console.log(`Received DELETE request for task: ${req.params.taskId}`);
-
-  if (!req.session.userId) {
-    console.error("❌ User not logged in");
-    return res.status(401).json({ success: false, message: "Please log in" });
-  }
-
-  try {
-    const user = await User.findById(req.session.userId);
-    if (!user) {
-      console.error("❌ User not found in database");
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    // Ensure user has tasks
-    if (!user.tasks || user.tasks.length === 0) {
-      console.error("❌ User has no tasks");
-      return res.status(400).json({ success: false, message: "No tasks found" });
-    }
-
-    // 🔥 Log the current tasks before removing
-    console.log("✅ Before removal:", user.tasks.map(task => task._id.toString()));
-
-    // 🔥 Remove the task
-    const updatedTasks = user.tasks.filter(task => task._id.toString() !== req.params.taskId);
-    
-    // If no task was removed, log it
-    if (updatedTasks.length === user.tasks.length) {
-      console.error("❌ Task not found in user's list");
-      return res.status(404).json({ success: false, message: "Task not found" });
-    }
-
-    user.tasks = updatedTasks;
-    await user.save();
-
-    // Recalculate task metrics after removing the task
-    await recalculateTaskMetrics(req.session.userId);
-
-    console.log(`✅ Task ${req.params.taskId} removed successfully`);
-    return res.json({ success: true });
-  } catch (error) {
-    console.error('❌ Error removing task:', error);
-    return res.status(500).json({ success: false, message: "Error removing task" });
-  }
-});
-
-
-
-
-
-// const storage = multer.diskStorage({
-//   destination: 'uploads/',
-//   filename: function (req, file, cb) {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-//     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-//   }
-// });
-// const upload = multer({ storage: storage }).single('image');
-
-
-
-
-
-app.get('/dashboard-pug', async (req, res) => {
-  try {
-      const { teamId } = req.query; // Capture the teamId from the request query parameters
-      let users;
-      const teams = await Team.find(); // Fetch all teams for the dropdown
-
-      if (teamId) {
-          users = await User.find({ teamID: teamId }).populate('teamID'); // Filter users by teamID
-      } else {
-          users = await User.find().populate('teamID'); // Fetch all users if no specific team is selected
-      }
-
-      res.render('dashboard', {
-          users: users,
-          teams: teams
-      });
-  } catch (error) {
-      console.error('Error while fetching dashboard data:', error);
-      res.status(500).send('Error fetching data');
-  }
-});
-
-
-
-// app.get('/dashboard-pug', async (req, res) => {
-//   try {
-//     const users = await User.find(); // Fetch user data from the database
-
-//     const teams = await Team.find(); // Fetch team data from the database
-
-//     res.render('dashboard.pug', {
-//       title: 'Express Pug',
-//       message: 'This is another sample page',
-//       users: users, // Pass user data to the template
-//       teams: teams  // Pass team data to the template
-//     });
-//   } catch (error) {
-//     res.status(500).send('Error fetching user data');
-//   }
-// });
-
-// app.get('/dashboard-pug', async (req, res) => {
-//   try {
-//     const users = await User.find({}, 'username'); // Fetch user data with only username field
-
-//     const teams = await Team.find({}, 'teamName'); // Fetch team data with only teamName field
-
-//     res.render('dashboard.pug', {
-//       title: 'Express Pug',
-//       message: 'This is another sample page',
-//       users: users, // Pass user data to the template
-//       teams: teams  // Pass team data to the template
-//     });
-//   } catch (error) {
-//     res.status(500).send('Error fetching user data');
-//   }
-// });
 
 
 connectDB().then(() => {
@@ -744,15 +93,322 @@ app.use(bodyParser.urlencoded({ extended: true }));//added recently to improve t
 // //middle-ware-routs
 // app.use('/api/user', myRoutes)
 
-app.get('/', (req, res) => {
-  res.render('login.pug', {
-    title: 'Express Pug',
-    message: 'This is another sample page'
+// app.get('/', (req, res) => {
+//   res.render('login.pug', {
+//     title: 'Express Pug',
+//     message: 'This is another sample page'
+//   });
+//   });
+
+app.use(userRoutes);
+
+
+const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
+const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
+const BASE_URL = process.env.BASE_URL;
+const ID = process.env.ID;
+const defaultBoardId = process.env.BOARD_ID_DEFAULT;//Performance Tracker
+const boardId1 = process.env.BOARD_ID_1;//Miami EdTech
+const boardId2 = process.env.BOARD_ID_2;//GS Board
+
+
+
+
+app.use(express.json()); // for parsing application/json
+app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
+
+
+// Route to handle form submission
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: 'uploads/',
+  filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage }) // Assuming you're saving files in 'uploads/' directory
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.get('/register-pug', (req, res) => {
+  res.render('register.pug', {
+    title: 'Register',
+    message: 'Please register to continue'
   });
+});
+
+app.post('/register-pug', upload.single('image'), async (req, res) => {
+  console.log(req.body);
+  const { username, password, email } = req.body;
+
+  if (!username || !password || !email) {
+    return res.status(400).send('Username, password, and email are required').end();
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, email, password: hashedPassword });
+    await newUser.save();
+
+    res.status(201).redirect('/login-pug');
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).send('Error registering user');
+  }
+});
+
+
+app.get('/login-pug', (req, res) => {
+  res.render('login.pug', {
+    title: 'login',
+    message: 'Please register to continue'
+  });
+});
+
+
+
+app.post('/login-pug', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).send('Invalid username or password');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).send('Invalid username or password');
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Set token in session
+    req.session.token = token;
+
+    res.status(200).redirect('/account');
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).send('Error logging in');
+  }
+});
+
+
+
+app.get('/account', (req, res) => {
+  if (!req.session.token) {
+    return res.redirect('/');
+  }
+
+  res.render('account.pug', {
+    title: 'Account',
+    message: 'Welcome to your account page'
+  });
+});
+
+
+app.get('/logout', function(req, res) {
+  req.session.destroy(function(err) {
+      if (err) {
+          console.error("Error destroying session: ", err);
+          return res.status(500).send("Could not log out.");
+      }
+      res.redirect('/login-pug');
+  });
+});
+
+
+app.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send('Error logging out');
+    }
+    res.redirect('/login-pug');
+  });
+});
+
+//---------------------------------------------------Complexity Page---------------------------------------------------
+
+
+const getCustomFieldsForBoard = async (boardId) => {
+  try {
+    const response = await axios.get(`https://api.trello.com/1/boards/${boardId}/customFields?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    return response.data; // This will return all custom fields defined on the board
+  } catch (error) {
+    console.error('Failed to fetch custom fields:', error);
+    throw error;
+  }
+};
+
+
+const fetchCardsWithCustomFields = async (boardId) => {
+  try {
+    const response = await axios.get(`https://api.trello.com/1/boards/${boardId}/cards?customFieldItems=true&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    return response.data; // Returns all cards with custom field items included
+  } catch (error) {
+    console.error('Failed to fetch cards with custom fields:', error);
+    throw error;
+  }
+};
+
+const processCardsWithComplexity = async (boardId) => {
+  const cards = await fetchCardsWithCustomFields(boardId);
+  const customFields = await getCustomFieldsForBoard(boardId);
+
+  // Find the ID of the Complexity custom field
+  const complexityField = customFields.find(field => field.name === 'Complexity');
+  const complexityFieldId = complexityField ? complexityField.id : null;
+
+  if (!complexityFieldId) {
+    console.log('Complexity field not found on the board');
+    return [];
+  }
+
+  // Map cards to include complexity data
+  const cardsWithComplexity = cards.map(card => {
+    const complexityItem = card.customFieldItems.find(item => item.idCustomField === complexityFieldId);
+    const complexity = complexityItem && complexityItem.value ? complexityItem.value.number : 'N/A';
+    return {
+      ...card,
+      complexity
+    };
   });
 
-app.use('/team-members', userRoutes);
-app.use('/teams', teamRoutes);
+  return cardsWithComplexity;
+};
+
+
+
+const complexityDetails = async (boardId) => {
+  try {
+    const cardsWithComplexity = await processCardsWithComplexity(boardId);
+    const { data } = await axios.get(`https://api.trello.com/1/boards/${boardId}?lists=open&members=all&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    const { lists, members } = data;
+
+    let memberDetails = members.map(member => ({
+      id: member.id,
+      username: member.username,
+      fullName: member.fullName,
+      cards: cardsWithComplexity.filter(card => card.idMembers.includes(member.id)).map(card => {
+        const list = lists.find(list => list.id === card.idList);
+        return {
+          cardName: card.name,
+          listName: list ? list.name : 'Unknown',
+          complexity: card.complexity,
+          activityDate: card.dateLastActivity ? new Date(card.dateLastActivity).toLocaleString() : 'N/A',
+          dueDate: card.due ? new Date(card.due).toLocaleString() : 'N/A',
+          hoursOnList: 'N/A' // Placeholder for actual logic to calculate hours
+        };
+      })
+    }));
+
+    return memberDetails; // Returns an array of member details including card complexity
+  } catch (error) {
+    console.error('Failed to fetch Trello board details:', error);
+    throw error;
+  }
+};
+
+
+
+
+app.get('/members-pug', async (req, res) => {
+  const boardId = req.query.boardId || defaultBoardId;
+  const memberId = req.query.memberId; // Get the selected memberId from query parameters
+
+  try {
+      const members = await complexityDetails(boardId); // Get all members for the selected board
+      const filteredMembers = memberId ? members.filter(member => member.id === memberId) : members; // Filter members if memberId is provided
+
+      res.render('members', {
+          members: filteredMembers,  // Filtered members displayed
+          allMembers: members, // Full list of members for the dropdown
+          currentBoardId: boardId,
+          selectedMemberId: memberId || "",  // Ensure selectedMemberId is always passed
+          defaultBoardId,
+          boardId1,
+          boardId2
+      });
+  } catch (error) {
+      console.error('Error fetching member data:', error);
+      res.status(500).send('Error fetching member data');
+  }
+});
+
+
+
+
+//-------------------------------------------^^^^^Complexity Page^^^^^---------------------------------------------------
+
+
+const getBoardDetails = async (boardId) => {
+  try {
+    // Fetch board details including lists and cards
+    const boardResponse = await axios.get(`https://api.trello.com/1/boards/${boardId}?cards=open&lists=open&members=all&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    const { cards, lists, members } = boardResponse.data;
+
+    // Initialize data structure to hold member card counts and list-specific counts
+    const memberDetails = members.reduce((acc, member) => {
+      acc[member.id] = {
+        id: member.id,  // Ensure each member's data structure contains their ID
+        username: member.username,
+        fullName: member.fullName,
+        totalCards: 0,
+        cardsInList: lists.reduce((listAcc, list) => {
+          listAcc[list.name] = 0;
+          return listAcc;
+        }, {})
+      };
+      return acc;
+    }, {});
+    
+
+    // Map cards to their lists and update member details with card counts
+    cards.forEach(card => {
+      card.idMembers.forEach(memberId => {
+        if (memberDetails[memberId]) {
+          memberDetails[memberId].totalCards++;
+          const list = lists.find(list => list.id === card.idList);
+          if (list && memberDetails[memberId].cardsInList[list.name] !== undefined) {
+            memberDetails[memberId].cardsInList[list.name]++;
+          }
+        }
+      });
+    });
+
+    return memberDetails;  // Returns a detailed object with all member card counts
+  } catch (error) {
+    console.error('Failed to fetch Trello board details:', error);
+    throw error;
+  }
+};
+
+app.get('/dashboard-pug', async (req, res) => {
+  const boardId = req.query.boardId || defaultBoardId;
+  const memberId = req.query.memberId || ''; // Handle undefined memberId
+
+  try {
+    const members = await getBoardDetails(boardId);
+    const filteredMembers = memberId ? Object.values(members).filter(member => member.id === memberId) : Object.values(members);
+
+    res.render('dashboard', {
+      members: filteredMembers,
+      allMembers: Object.values(members), // Ensure all members are passed for dropdown
+      currentBoardId: boardId,
+      selectedMemberId: memberId,
+      defaultBoardId,
+      boardId1,
+      boardId2
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).send('Error fetching dashboard data');
+  }
+});
 
 
 
@@ -760,30 +416,26 @@ app.use('/teams', teamRoutes);
 //need a web-hook to get hit by Trello API when a card gets moved from one list to another
 //Create a web-hook to tell Trello to send a request to that end point. Should see console.log(“web hook hit“)
 
-const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
-const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
-const BOARD_ID = process.env.BOARD_ID; // or use LIST_ID if you want to monitor a specific list
-const BASE_URL = process.env.BASE_URL;
-const ID = process.env.ID;
+
 
 
 //step 1: Create Trello Webhook with description-------------------------------WORKED!!!---------------------------------
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-// async function createWebhook() {
-//   console.log(app._router.stack);
-//   try {
-//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-//       description: 'Card Move Webhook',
-//       callbackURL: `${BASE_URL}/trello-webhook`, // replace with your actual URL
-//       idModel: BOARD_ID,
-//     });
-//     console.log('Webhook created:', response.data);
-//   } catch (error) {
-//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-//   }
-// }
-// createWebhook() // Call the function to create the webhook
+async function createWebhook() {
+  console.log(app._router.stack);
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'GS - Card Move Webhook',
+      callbackURL: `${BASE_URL}/trello-webhook-GS`, // replace with your actual URL
+      idModel: boardId2 // replace with your actual board ID
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
+createWebhook() // Call the function to create the webhook
 
 
 
@@ -935,14 +587,13 @@ fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TR
 //----------------------------This is to check the time stamp of the card movements-------------------------------------
 // Finds an existing card movement document that hasn't been completed yet
 
-const Log = require('./Module/logSchema.js');  // Assume you have a Log model defined elsewhere
-
-
+  // Assume you have a Log model defined elsewhere
 async function logMessage(message) {
   const logEntry = new Log({ message });
   await logEntry.save();
 }
-
+//----Will have to make a copy of this for each board matching the rout of the new webhook-------------------
+//Post Request to see logs from the Performance Tracker Board
 app.post('/trello-webhook', async (req, res) => {
   try {
     const { action } = req.body;
@@ -997,11 +648,79 @@ app.post('/trello-webhook', async (req, res) => {
   }
 });
 
+
+//Post Request to see logs from the GS Board
+app.post('/trello-webhook-GS', async (req, res) => {
+  try {
+    const { action } = req.body;
+    const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+
+    if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+      const cardID = action.data.card.id;
+      const cardName = action.data.card.name;
+      const fromList = action.data.listBefore.name;
+      const toList = action.data.listAfter.name;
+
+      const logMessageText = `Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`;
+      console.log(logMessageText);
+      await logMessage(logMessageText);
+
+      try {
+        await updateCard(cardID, fromList, { exitTimestamp: timestamp });
+        console.log('Exit timestamp updated for:', cardName);
+        await logMessage(`Exit timestamp updated for: ${cardName}`);
+      } catch (error) {
+        console.error('Error updating card movement:', error);
+        await logMessage(`Error updating card movement: ${error.message}`);
+        res.sendStatus(500);
+        return;
+      }
+
+      try {
+        await addCard(cardID, fromList, toList, cardName, timestamp);
+        console.log('New movement added for:', cardName);
+        await logMessage(`New movement added for: ${cardName}`);
+      } catch (error) {
+        console.error('Error adding card movement:', error);
+        await logMessage(`Error adding card movement: ${error.message}`);
+        res.sendStatus(500);
+        return;
+      }
+
+      try {
+        await getTimeInList(cardID, fromList, cardName);
+      } catch (error) {
+        console.error('Error calculating time in list:', error);
+        await logMessage(`Error calculating time in list: ${error.message}`);
+        res.sendStatus(500);
+        return;
+      }
+    }
+    res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    await logMessage(`Error processing webhook: ${error.message}`);
+    res.sendStatus(500); // Send an error response if something goes wrong
+  }
+});
+//--Will have to make a copy of this for each board changing the rout-------------------
+//For The Performance Tracker Board Logs
 app.get('/logs', async (req, res) => {
   try {
       const logs = await Log.find().sort({ timestamp: -1 }).limit(100);
       res.set('Cache-Control', 'no-store, max-age=604800'); // Prevents caching of the page and sets max-age to 1 week (604800 seconds)
       res.render('logs', { logs });
+  } catch (error) {
+      console.error('Failed to fetch logs:', error);
+      res.status(500).send('Error fetching logs');
+  }
+});
+// For the GS Board Logs
+app.get('/logs2', async (req, res) => {
+  try {
+      const logs = await Log.find().sort({ timestamp: -1 }).limit(100);
+      res.set('Cache-Control', 'no-store, max-age=604800'); // Prevents caching of the page and sets max-age to 1 week (604800 seconds)
+      res.render('logs2', { logs });
   } catch (error) {
       console.error('Failed to fetch logs:', error);
       res.status(500).send('Error fetching logs');

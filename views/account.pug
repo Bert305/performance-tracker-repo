@@ -1,200 +1,55 @@
 doctype html
 html
     head
-        title #{title}
-        script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous")
-        link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
+        title Account Page
         style.
             body {
-                background-color: #f8f9fa;
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
             }
-            .card {
-                border-radius: 10px;
-                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            h1 {
+                color: #333;
             }
-            .card-title {
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+            li {
+                margin: 10px 0;
+            }
+            a {
+                text-decoration: none;
+                color: #007BFF;
                 font-weight: bold;
             }
-            .list-group-item {
-                background: #fff;
-                border-radius: 5px;
+            a:hover {
+                text-decoration: underline;
             }
-            .btn-primary {
-                width: 100%;
-                font-weight: bold;
+            form {
+                margin-top: 20px;
             }
-            .team-selection {
-                background: #fff;
-                padding: 15px;
-                border-radius: 10px;
-                box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+            button {
+                background-color: #007BFF;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-size: 16px;
             }
-            .tasks-container {
-                background: #fff;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+            button:hover {
+                background-color: #0056b3;
             }
-
     body
-        .container.py-5
-            .row.justify-content-center
-                // User information card
-                .col-md-4
-                    .card
-                        if user.image
-                            img.card-img-top(src=user.image alt="User Image" style="border-top-left-radius: 10px; border-top-right-radius: 10px;")
-                        else
-                            img.card-img-top(src="/images/default-image.jpg" alt="Default Image")
-                        .card-body.text-center
-                            h5.card-title.text-primary #{user.username}
-                            p.card-text.mb-1
-                                strong First Name: 
-                                | #{user.firstName}
-                            p.card-text.mb-1
-                                strong Last Name: 
-                                | #{user.lastName}
-                            ul.list-group.list-group-flush.mt-3
-                                li.list-group-item
-                                    strong Email:  
-                                    | #{user.email}
-                                li.list-group-item
-                                    strong Role:  
-                                    | #{user.role}
-                                li.list-group-item
-                                    strong Current Team:  
-                                    | #{user.teamName ? user.teamName : 'No team assigned'}
-                            .card-body.text-center
-                                a.btn.btn-outline-primary(href="/teams-pug") Create a Team
-                                a.btn.btn-outline-secondary(href="/edit-account-pug") Edit Account 
-                                a.btn.btn-outline-success(href="/create-tasks-pug") Create a Task
-                                a.btn.btn-outline-danger(href="/logout-pug") Logout
-                                a.btn.btn-outline-info(href="/dashboard-pug" target="_blank") See Dashboard
-                                a.btn.btn-outline-warning(href="/logs" target="_blank") Check Logs
-                // Team selection form
-                .col-md-4
-                    .team-selection
-                        h5.text-center.text-secondary Select Team
-                        form(action="/user-account-pug" method="post")
-                            .mb-3
-                                label(for="teamSelect" class="form-label") Choose your team:
-                                select#teamSelect.form-select(name="teamId")
-                                    if teams && teams.length > 0
-                                        each team in teams
-                                            option(
-                                                value=team._id 
-                                                selected=(user.teamID && user.teamID._id.toString() === team._id.toString())
-                                            ) #{team.teamName}
-                                    else
-                                        option No teams available
-                                script.
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        const teamSelect = document.getElementById('teamSelect');
-
-                                        teamSelect.addEventListener('change', function() {
-                                            const selectedOption = teamSelect.options[teamSelect.selectedIndex];
-
-                                            fetch('/update-user-team', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({ teamId: selectedOption.value })
-                                            })
-                                            .then(response => response.json())
-                                            .then(data => {
-                                                if (data.success) {
-                                                    console.log(`✅ Team ID ${selectedOption.value} added to user schema successfully`);
-                                                    alert('Team updated successfully!');
-                                                } else {
-                                                    alert(data.message || 'Failed to update team ID');
-                                                }
-                                            })
-                                            .catch(error => {
-                                                console.error('❌ Error:', error);
-                                                alert('An error occurred while updating the team ID');
-                                            });
-                                        });
-                                    });
-
-                            input(type="hidden" name="teamName" id="teamName" value=(user.teamID && user.teamID.teamName ? user.teamID.teamName : ''))
-                            p.text-center.text-muted Team Name: <span id="teamNameText" class="fw-bold text-primary">#{user.teamName ? user.teamName : 'No team assigned'}</span>
-                            button.btn.btn-primary(type="submit") Assign Team
-
-                // Tasks list
-                .col-md-6.mt-4
-                    .tasks-container
-                        h5.text-center.text-dark User Tasks
-                        if user.tasks && user.tasks.length > 0
-                            ul.list-group
-                                each task in user.tasks
-                                    li.list-group-item.d-flex.justify-content-between.align-items-center
-                                        .task-details
-                                            h6.text-dark #{task.taskName}
-                                            p.text-muted #{task.description}
-                                            p.text-info
-                                                strong Complexity:  
-                                                | #{task.complexity},  
-                                                strong Status:  
-                                                | #{task.status}
-                                            p.text-secondary
-                                                strong Assigned Date:  
-                                                | #{(task.assignedDate ? task.assignedDate.toDateString() : 'N/A')}
-                                                br
-                                                strong Due Date:  
-                                                | #{(task.dueDate ? task.dueDate.toDateString() : 'N/A')}
-                                            p.text-success
-                                                strong Sprint Progress:  
-                                                | #{user.totalSprintTickets} Total,  
-                                                | #{user.inProgressTickets} In Progress,  
-                                                | #{user.doneTickets} Done
-                                        .task-actions
-                                            button.btn.btn-outline-primary.btn-sm.ml-2(onclick=`editTask('${task._id}')`) Edit
-                                            button.btn.btn-outline-danger.btn-sm.ml-2(onclick=`removeTask('${task._id}')`) X
-
-                        else
-                            p.text-center.text-muted No tasks assigned
-
-    script.
-        document.addEventListener('DOMContentLoaded', function() {
-            const teamSelect = document.getElementById('teamSelect');
-            const teamNameInput = document.getElementById('teamName');
-            const teamNameText = document.getElementById('teamNameText');
-
-            teamSelect.addEventListener('change', function() {
-                const selectedOption = teamSelect.options[teamSelect.selectedIndex];
-
-                // Update the displayed team name
-                teamNameText.innerText = selectedOption.text;
-                teamNameInput.value = selectedOption.text;
-
-                console.log(`Selected Team: ${selectedOption.text}`); // Debugging log
-            });
-        });
-
-        function removeTask(taskId) {
-            console.log(`Clicked delete for task ID: ${taskId}`);
-            if (confirm('Are you sure you want to remove this task?')) {
-            fetch(`/remove-task/${taskId}`, { // 🔥 Fix: Updated route
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                console.log(`✅ Task ${taskId} removed successfully`);
-                location.reload(); // Reload the page to update UI
-                } else {
-                alert(data.message || 'Failed to remove task');
-                }
-            })
-            .catch(error => {
-                console.error('❌ Error:', error);
-                alert('An error occurred while removing the task');
-            });
-            }
-        }
-
-        function editTask(taskId) {
-            console.log(`Clicked edit for task ID: ${taskId}`);
-            window.location.href = `/edit-task-pug/${taskId}`;
-        }
+        h1 Hello, #{username || 'Guest'}
+        ul
+            li: a(href='/dashboard-pug', target='_blank') Dashboard
+            li: a(href='/members-pug', target='_blank') Members
+        form(action='/logout', method='post')
+            button(type='submit') Logout

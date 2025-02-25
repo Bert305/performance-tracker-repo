@@ -1,0 +1,32 @@
+doctype html
+html
+    head
+        title Trello Logs
+        style.
+            body { font-family: Arial, sans-serif; line-height: 1.6; }
+            .logs-container p { margin: 0.5em 0; padding: 0.2em; border-bottom: 1px solid #ccc; }
+    body
+        h1 Trello Logs
+        .logs-container
+            each log in logs
+                p #{log.timestamp.toLocaleString("en-US", { timeZone: "America/New_York" })}: #{log.message}
+        script.
+            function refreshLogs() {
+                fetch('/logs')
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newLogs = doc.querySelector('.logs-container');
+                        if (newLogs) {  // Ensure that there are logs to update
+                            document.querySelector('.logs-container').innerHTML = newLogs.innerHTML;
+                        } else {
+                            console.error('No logs container found in the fetched HTML.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching updated logs:', err);
+                        alert('Failed to fetch updated logs.');  // Optionally alert the user
+                    });
+            }
+            setInterval(refreshLogs, 5000);  // Refresh every 5000 milliseconds (5 seconds)

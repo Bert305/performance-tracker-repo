@@ -1,38 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const {createTeamMember, test, login, getTeamMemberById, updateTeamMember, deleteTeamMember, addPerformanceMetrics, logout, addTask, updateTask, deleteTask, 
-    getAllTeamInfo, getTicketMetrics, updateTicketCounters, teamMembersInfo} = require('../controllers/userControllers')
+const {test, login, register, dashboard, boards, getTrelloBoardData, getTrelloUserData} = require('../controllers/userControllers')
 
 // Route for testing
 router.get('/test', test);
-
 // Routes for managing team members
-router.post('/register', createTeamMember);
+router.post('/register', register);
 router.post('/login', login);
-router.get('/:id', getTeamMemberById);
-router.put('/:id', updateTeamMember);
-router.delete('/:id', deleteTeamMember);
-
-router.post('/logout', logout);
-
-// Routes for managing tasks
-router.post('/:id/tasks', addTask);
-router.put('/:id/tasks/:taskId', updateTask);
-router.delete('/:id/tasks/:taskId', deleteTask);
-
-// Add performance metrics for a specific team member
-router.put('/:id/performance-metrics', addPerformanceMetrics);
-
-
-// Get all team members with tasks, team info, and performance metrics
-router.get('/:id/team-info', getAllTeamInfo);
-
-// Get ticket metrics for a specific team member
-router.get('/:id/ticket-metrics', getTicketMetrics);
-
-// Manually update ticket counters for a team member
-router.put('/:id/update-ticket-counters', updateTicketCounters);
-
+router.get('/dashboard', dashboard);
+router.get('/boards', boards);
+router.get('/trello-board', getTrelloBoardData);
+router.get('/trello-users', getTrelloUserData);
 
 module.exports = router;
 
