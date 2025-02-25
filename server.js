@@ -423,27 +423,27 @@ app.get('/dashboard-pug', async (req, res) => {
 //step 1: Create Trello Webhook with description-------------------------------WORKED!!!---------------------------------
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-// async function createWebhook() {
-//   console.log(app._router.stack);
-//   try {
-//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-//       description: 'GS - Card Move Webhook',
-//       callbackURL: `${BASE_URL}/trello-webhook-GS`, // replace with your actual URL
-//       idModel: boardId2 // replace with your actual board ID
-//     });
-//     console.log('Webhook created:', response.data);
-//   } catch (error) {
-//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-//   }
-// }
-// createWebhook() // Call the function to create the webhook
+async function createWebhook() {
+  console.log(app._router.stack);
+  try {
+    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      description: 'Miami_EdTech - Card Move Webhook',
+      callbackURL: `${BASE_URL}/trello-webhook-Miami-EdTech`, // replace with your actual URL
+      idModel: boardId2 // replace with your actual board ID
+    });
+    console.log('Webhook created:', response.data);
+  } catch (error) {
+    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+  }
+}
+createWebhook() // Call the function to create the webhook
 
 
 
-// app.head('/trello-webhook-GS', (req, res) => {
-//   res.status(200).send();
-//   console.log('Webhook response received works!');
-// });
+app.head('/trello-webhook-Miami-EdTech', (req, res) => {
+  res.status(200).send();
+  console.log('Webhook response received works!');
+});
 
 
 // app.post('/trello-webhook', (req, res) => {
@@ -542,43 +542,26 @@ app.get('/dashboard-pug', async (req, res) => {
 //step 2: Get Status of Trello Webhook
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-const fetch2 = require('node-fetch');
-
-fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json'
-  }
-})
-  .then(response => {
-    console.log(
-      `Response: ${response.status} ${response.statusText}`
-    );
+const fetchWebhookStatus = async (webhookId) => {
+  try {
+    const response = await fetch2(`https://api.trello.com/1/webhooks/${webhookId}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    console.log(`Response: ${response.status} ${response.statusText}`);
     console.log(app._router.stack);
-    return response.text();
-  })
-  .then(text => console.log(text))
-  .catch(err => console.error(err));
-
-
-
-  const fetch3 = require('node-fetch');
-
-fetch3(`https://api.trello.com/1/webhooks/${ID2}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json'
+    const text = await response.text();
+    console.log(text);
+  } catch (err) {
+    console.error(err);
   }
-})
-  .then(response => {
-    console.log(
-      `Response: ${response.status} ${response.statusText}`
-    );
-    console.log(app._router.stack);
-    return response.text();
-  })
-  .then(text => console.log(text))
-  .catch(err => console.error(err));
+};
+
+fetchWebhookStatus(ID);
+fetchWebhookStatus(ID2);
+
 
 
 // // web-hook end-point----------------------------------This works!!!! Please keep it commented out for now!!-------------------------------------
@@ -726,6 +709,67 @@ app.post('/trello-webhook-GS', async (req, res) => {
     res.sendStatus(500); // Send an error response if something goes wrong
   }
 });
+
+
+
+//Post Request to see logs from the GS Board
+app.post('/trello-webhook-Miami-EdTech', async (req, res) => {
+  try {
+    const { action } = req.body;
+    const timestamp = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+
+    if (action && action.type === 'updateCard' && action.data.listBefore && action.data.listAfter) {
+      const cardID = action.data.card.id;
+      const cardName = action.data.card.name;
+      const fromList = action.data.listBefore.name;
+      const toList = action.data.listAfter.name;
+      const boardName = action.data.board.name;
+
+      const logMessageText = `Card "${cardName}" moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
+      console.log(logMessageText);
+      await logMessage(logMessageText);
+
+      try {
+        await updateCard(cardID, fromList, { exitTimestamp: timestamp });
+        console.log('Exit timestamp updated for:', cardName);
+        await logMessage(`Exit timestamp updated for: ${cardName}`);
+      } catch (error) {
+        console.error('Error updating card movement:', error);
+        await logMessage(`Error updating card movement: ${error.message}`);
+        res.sendStatus(500);
+        return;
+      }
+
+      try {
+        await addCard(cardID, fromList, toList, cardName, timestamp);
+        console.log('New movement added for:', cardName);
+        await logMessage(`New movement added for: ${cardName}`);
+      } catch (error) {
+        console.error('Error adding card movement:', error);
+        await logMessage(`Error adding card movement: ${error.message}`);
+        res.sendStatus(500);
+        return;
+      }
+
+      try {
+        await getTimeInList(cardID, fromList, cardName);
+      } catch (error) {
+        console.error('Error calculating time in list:', error);
+        await logMessage(`Error calculating time in list: ${error.message}`);
+        res.sendStatus(500);
+        return;
+      }
+    }
+    res.sendStatus(200); // Send a response to acknowledge receipt of the webhook
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    await logMessage(`Error processing webhook: ${error.message}`);
+    res.sendStatus(500); // Send an error response if something goes wrong
+  }
+});
+
+
+
 //--Will have to make a copy of this for each board changing the rout-------------------
 //For The Performance Tracker Board Logs
 app.get('/logs', async (req, res) => {
