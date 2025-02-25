@@ -107,6 +107,7 @@ const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
 const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
 const BASE_URL = process.env.BASE_URL;
 const ID = process.env.ID;
+const ID2 = process.env.ID2;
 const defaultBoardId = process.env.BOARD_ID_DEFAULT;//Performance Tracker
 const boardId1 = process.env.BOARD_ID_1;//Miami EdTech
 const boardId2 = process.env.BOARD_ID_2;//GS Board
@@ -422,27 +423,27 @@ app.get('/dashboard-pug', async (req, res) => {
 //step 1: Create Trello Webhook with description-------------------------------WORKED!!!---------------------------------
 // This code sample uses the 'node-fetch' library:
 // https://www.npmjs.com/package/node-fetch
-async function createWebhook() {
-  console.log(app._router.stack);
-  try {
-    const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
-      description: 'GS - Card Move Webhook',
-      callbackURL: `${BASE_URL}/trello-webhook-GS`, // replace with your actual URL
-      idModel: boardId2 // replace with your actual board ID
-    });
-    console.log('Webhook created:', response.data);
-  } catch (error) {
-    console.error('Error creating webhook:', error.response ? error.response.data : error.message);
-  }
-}
-createWebhook() // Call the function to create the webhook
+// async function createWebhook() {
+//   console.log(app._router.stack);
+//   try {
+//     const response = await axios.post(`https://api.trello.com/1/webhooks/?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+//       description: 'GS - Card Move Webhook',
+//       callbackURL: `${BASE_URL}/trello-webhook-GS`, // replace with your actual URL
+//       idModel: boardId2 // replace with your actual board ID
+//     });
+//     console.log('Webhook created:', response.data);
+//   } catch (error) {
+//     console.error('Error creating webhook:', error.response ? error.response.data : error.message);
+//   }
+// }
+// createWebhook() // Call the function to create the webhook
 
 
 
-app.head('/trello-webhook-GS', (req, res) => {
-  res.status(200).send();
-  console.log('Webhook response received works!');
-});
+// app.head('/trello-webhook-GS', (req, res) => {
+//   res.status(200).send();
+//   console.log('Webhook response received works!');
+// });
 
 
 // app.post('/trello-webhook', (req, res) => {
@@ -544,6 +545,26 @@ app.head('/trello-webhook-GS', (req, res) => {
 const fetch2 = require('node-fetch');
 
 fetch2(`https://api.trello.com/1/webhooks/${ID}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json'
+  }
+})
+  .then(response => {
+    console.log(
+      `Response: ${response.status} ${response.statusText}`
+    );
+    console.log(app._router.stack);
+    return response.text();
+  })
+  .then(text => console.log(text))
+  .catch(err => console.error(err));
+
+
+
+  const fetch3 = require('node-fetch');
+
+fetch3(`https://api.trello.com/1/webhooks/${ID2}?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`, {
   method: 'GET',
   headers: {
     'Accept': 'application/json'
