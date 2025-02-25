@@ -681,8 +681,9 @@ app.post('/trello-webhook-GS', async (req, res) => {
       const cardName = action.data.card.name;
       const fromList = action.data.listBefore.name;
       const toList = action.data.listAfter.name;
+      const boardName = action.data.board.name;
 
-      const logMessageText = `Card "${cardName}" moved from ${fromList} to ${toList} at ${timestamp}`;
+      const logMessageText = `Card "${cardName}" moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
