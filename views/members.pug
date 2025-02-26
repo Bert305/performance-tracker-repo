@@ -1,4 +1,3 @@
-
 doctype html
 html
   head
@@ -14,6 +13,10 @@ html
         }
         window.location.href = url.toString();
       }
+      // Refresh the page every 5 seconds
+      setInterval(function() {
+        window.location.reload();
+      }, 5000);
   body
     .container
       h1.mb-4 Board Members

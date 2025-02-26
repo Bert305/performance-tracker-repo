@@ -106,9 +106,9 @@ app.use(userRoutes);
 const TRELLO_API_KEY = process.env.TRELLO_API_KEY;
 const TRELLO_TOKEN = process.env.TRELLO_TOKEN;
 const BASE_URL = process.env.BASE_URL;
-const ID = process.env.ID;
-const ID2 = process.env.ID2;
-const ID3 = process.env.ID3;
+const ID = process.env.ID; //Performance Tracker Web-hook
+const ID2 = process.env.ID2; // GS Web-hook
+const ID3 = process.env.ID3; // Miami EdTech Web-hook
 const defaultBoardId = process.env.BOARD_ID_DEFAULT;//Performance Tracker
 const boardId1 = process.env.BOARD_ID_1;//Miami EdTech
 const boardId2 = process.env.BOARD_ID_2;//GS Board
@@ -315,9 +315,6 @@ const complexityDetails = async (boardId) => {
   }
 };
 
-
-
-
 app.get('/members-pug', async (req, res) => {
   const boardId = req.query.boardId || defaultBoardId;
   const memberId = req.query.memberId; // Get the selected memberId from query parameters
@@ -341,7 +338,37 @@ app.get('/members-pug', async (req, res) => {
   }
 });
 
+// Auto-refresh the members page every 30 seconds
+setInterval(async () => {
+  try {
+    const boardId = defaultBoardId;
+    const members = await complexityDetails(boardId);
+    console.log('Auto-refreshed members data:', members);
+  } catch (error) {
+    console.error('Error auto-refreshing member data:', error);
+  }
+}, 5000); // 5000 milliseconds = 5 seconds
 
+// Auto-refresh the dashboard page every 30 seconds
+setInterval(async () => {
+  try {
+    const boardId = defaultBoardId;
+    const members = await getBoardDetails(boardId);
+    console.log('Auto-refreshed dashboard data:', members);
+  } catch (error) {
+    console.error('Error auto-refreshing dashboard data:', error);
+  }
+}, 5000); // 5000milliseconds = 5 seconds
+
+setInterval(async () => {
+  try {
+    const boardId2 = process.env.BOARD_ID_2; // The ID for the GS Board
+    const members = await getMetricsDetails(boardId2);
+    console.log('Auto-refreshed metrics data:', members);
+  } catch (error) {
+    console.error('Error auto-refreshing metrics data:', error);
+  }
+}, 5000); // 5000 milliseconds = 5 seconds
 
 
 //-------------------------------------------^^^^^Complexity Page^^^^^---------------------------------------------------
@@ -411,6 +438,85 @@ app.get('/dashboard-pug', async (req, res) => {
     res.status(500).send('Error fetching dashboard data');
   }
 });
+
+
+
+//-----------------Find average time in list for each member based on complexity-----------------
+
+const getMetricsDetails = async (boardId) => {
+  try {
+    const boardResponse = await axios.get(`https://api.trello.com/1/boards/${boardId}?cards=open&lists=open&members=all&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    const { cards, lists, members } = boardResponse.data;
+
+    const memberDetails = members.map(member => ({
+      id: member.id,
+      username: member.fullName,
+      totalCards: 0,
+      lists: {
+        'To Do': 0,
+        'In Progress': 0,
+        'QA Review': 0,
+        'Done': 0
+      },
+      score: 0  // Initialize score
+    }));
+
+    const memberMap = memberDetails.reduce((acc, member) => {
+      acc[member.id] = member;
+      return acc;
+    }, {});
+
+    // Example complexity values for cards
+    const cardComplexity = cards.reduce((acc, card) => {
+      acc[card.id] = Math.floor(Math.random() * 10) + 1;  // Simulate complexity score between 1-10
+      return acc;
+    }, {});
+
+    cards.forEach(card => {
+      card.idMembers.forEach(memberId => {
+        if (memberMap[memberId]) {
+          memberMap[memberId].totalCards++;
+          const listName = lists.find(list => list.id === card.idList)?.name;
+          if (listName && memberMap[memberId].lists.hasOwnProperty(listName)) {
+            memberMap[memberId].lists[listName]++;
+            if (listName === 'Done') {
+              memberMap[memberId].score += cardComplexity[card.id];  // Add complexity score to member's score
+            }
+          }
+        }
+      });
+    });
+
+    // Sort members by score for ranking
+    return memberDetails.sort((a, b) => b.score - a.score);
+  } catch (error) {
+    console.error('Failed to fetch Trello board details:', error);
+    throw error;
+  }
+};
+
+
+
+app.get('/metrics-pug', async (req, res) => {
+  const boardId2 = process.env.BOARD_ID_2;  // The ID for the GS Board
+  try {
+    const members = await getMetricsDetails(boardId2);
+    res.render('metrics', { members });
+  } catch (error) {
+    console.error('Error fetching metrics data:', error);
+    res.status(500).send('Error fetching metrics data');
+  }
+});
+
+
+
+
+
+
+
+//-----------------^^^^^^Find average time in list for each member based on complexity^^^^^-----------------
+
+
 
 
 
@@ -715,7 +821,7 @@ app.post('/trello-webhook-GS', async (req, res) => {
 
 
 //test logs
-//Post Request to see logs from the GS Board
+//Post Request to see logs from the Miami-EdTech Board
 app.post('/trello-webhook-Miami-EdTech-2', async (req, res) => {
   try {
     const { action } = req.body;
