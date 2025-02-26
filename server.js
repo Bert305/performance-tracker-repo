@@ -338,7 +338,7 @@ app.get('/members-pug', async (req, res) => {
   }
 });
 
-// Auto-refresh the members page every 30 seconds
+// Auto-refresh the members page every 15 seconds
 setInterval(async () => {
   try {
     const boardId = defaultBoardId;
@@ -347,9 +347,9 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error auto-refreshing member data:', error);
   }
-}, 5000); // 5000 milliseconds = 5 seconds
+}, 15000); // 15000 milliseconds = 15 seconds
 
-// Auto-refresh the dashboard page every 30 seconds
+// Auto-refresh the dashboard page every 15 seconds
 setInterval(async () => {
   try {
     const boardId = defaultBoardId;
@@ -358,7 +358,7 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error auto-refreshing dashboard data:', error);
   }
-}, 5000); // 5000milliseconds = 5 seconds
+}, 15000); // 15000 milliseconds = 15 seconds
 
 setInterval(async () => {
   try {
@@ -368,7 +368,7 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error auto-refreshing metrics data:', error);
   }
-}, 5000); // 5000 milliseconds = 5 seconds
+}, 15000); // 15000 milliseconds = 15 seconds
 
 
 //-------------------------------------------^^^^^Complexity Page^^^^^---------------------------------------------------
