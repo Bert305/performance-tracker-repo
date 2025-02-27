@@ -495,7 +495,7 @@ const getMetricsDetails = async (boardId) => {
             member.lists[listName]++;
             if (listName === 'DONE') {
               const cardScore = parseFloat(card.complexity || 0); // Parse complexity, defaulting to 0 if undefined
-              member.score += cardScore;
+                member.score += cardScore * 10; // Update score based on complexity
               // Optionally log cases where card complexity is missing or zero
               if (cardScore === 0) {
                 console.log(`Card with ID ${card.id} in 'DONE' list has zero or undefined complexity.`);
@@ -739,7 +739,7 @@ app.post('/trello-webhook', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card "${cardName}" moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
+      const logMessageText = `Card <strong>${cardName}</strong> moved from <strong>${fromList}</strong> board name <strong>${boardName}</strong>, to <strong>${toList}</strong> at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
@@ -796,7 +796,7 @@ app.post('/trello-webhook-GS', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card "${cardName}" moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
+      const logMessageText = `Card <strong>${cardName}</strong> moved from <strong>${fromList}</strong> board name <strong>${boardName}</strong>, to <strong>${toList}</strong> at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
@@ -854,7 +854,7 @@ app.post('/trello-webhook-Miami-EdTech-2', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card "${cardName}" moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
+      const logMessageText = `Card <strong>${cardName}</strong> moved from <strong>${fromList}</strong> board name <strong>${boardName}</strong>, to <strong>${toList}</strong> at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 

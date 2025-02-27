@@ -1,7 +1,7 @@
 doctype html
 html
   head
-    title Members Leaderboard
+    title GoSprout Leaderboard
     meta(http-equiv="refresh" content="15")
     link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
   body
@@ -17,6 +17,7 @@ html
             th(scope='col') QA Review
             th(scope='col') DONE
             th(scope='col') Score
+            th(scope='col') Progress
         tbody
           if members
             each member, index in members
@@ -29,8 +30,12 @@ html
                 td= member.lists['QA Review'] || 0
                 td= member.lists['DONE'] || 0
                 td= member.score
+                - var progress = (member.lists['DONE'] || 0) / member.totalCards * 100
+                td
+                  .progress
+                    .progress-bar(role='progressbar', style=`width: ${progress}%`, aria-valuenow=progress, aria-valuemin='0', aria-valuemax='100')= `${Math.round(progress)}%`
           else
             tr
-              td(colspan='8') No members found
+              td(colspan='9') No members found
 
 
