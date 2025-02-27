@@ -257,11 +257,18 @@ const fetchCardsWithCustomFields = async (boardId) => {
   }
 };
 
+// Function to calculate time in list by hours
+const getTimeInList2 = (entryTimestamp, exitTimestamp) => {
+  const entryDate = new Date(entryTimestamp);
+  const exitDate = new Date(exitTimestamp);
+  const duration = exitDate - entryDate; // duration in milliseconds
+  return (duration / 3600000).toFixed(2); // Converts milliseconds to hours
+};
+
 const processCardsWithComplexity = async (boardId) => {
   const cards = await fetchCardsWithCustomFields(boardId);
   const customFields = await getCustomFieldsForBoard(boardId);
 
-  // Find the ID of the Complexity custom field
   const complexityField = customFields.find(field => field.name === 'Complexity');
   const complexityFieldId = complexityField ? complexityField.id : null;
 
@@ -270,20 +277,24 @@ const processCardsWithComplexity = async (boardId) => {
     return [];
   }
 
-  // Map cards to include complexity data
-  const cardsWithComplexity = cards.map(card => {
+  // Fetch card movements from the database
+  const cardMovements = await CardMovement.find({ toListName: { $exists: true }, exitTimestamp: { $exists: true } });
+
+  return cards.map(card => {
     const complexityItem = card.customFieldItems.find(item => item.idCustomField === complexityFieldId);
     const complexity = complexityItem && complexityItem.value ? complexityItem.value.number : 'N/A';
+
+    // Find the corresponding card movement log
+    const cardMovement = cardMovements.find(movement => movement.cardID === card.id);
+    const hoursOnList = cardMovement ? getTimeInList2(cardMovement.entryTimestamp, cardMovement.exitTimestamp) : 'N/A';
+
     return {
       ...card,
-      complexity
+      complexity,
+      hoursOnList
     };
   });
-
-  return cardsWithComplexity;
 };
-
-
 
 const complexityDetails = async (boardId) => {
   try {
@@ -291,7 +302,7 @@ const complexityDetails = async (boardId) => {
     const { data } = await axios.get(`https://api.trello.com/1/boards/${boardId}?lists=open&members=all&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
     const { lists, members } = data;
 
-    let memberDetails = members.map(member => ({
+    return members.map(member => ({
       id: member.id,
       username: member.username,
       fullName: member.fullName,
@@ -301,19 +312,18 @@ const complexityDetails = async (boardId) => {
           cardName: card.name,
           listName: list ? list.name : 'Unknown',
           complexity: card.complexity,
+          hoursOnList: card.hoursOnList,
           activityDate: card.dateLastActivity ? new Date(card.dateLastActivity).toLocaleString() : 'N/A',
-          dueDate: card.due ? new Date(card.due).toLocaleString() : 'N/A',
-          hoursOnList: 'N/A' // Placeholder for actual logic to calculate hours
+          dueDate: card.due ? new Date(card.due).toLocaleString() : 'N/A'
         };
       })
     }));
-
-    return memberDetails; // Returns an array of member details including card complexity
   } catch (error) {
     console.error('Failed to fetch Trello board details:', error);
     throw error;
   }
 };
+
 
 app.get('/members-pug', async (req, res) => {
   const boardId = req.query.boardId || defaultBoardId;

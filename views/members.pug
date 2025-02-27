@@ -8,8 +8,7 @@ html
         const url = new URL(window.location.href);
         url.searchParams.set(param, value);
         if (param === 'boardId') {
-          // Reset memberId when changing board
-          url.searchParams.delete('memberId');
+          url.searchParams.delete('memberId'); // Reset memberId when changing board
         }
         window.location.href = url.toString();
       }
@@ -20,12 +19,10 @@ html
   body
     .container
       h1.mb-4 Board Members
-      // Board selection dropdown
       select(name="boardId" onchange="updateURL('boardId', this.value)")
         option(value=defaultBoardId selected=(currentBoardId === defaultBoardId)) Performance Tracker Board
         option(value=boardId1 selected=(currentBoardId === boardId1)) Miami EdTech 2024-2025 Tracker
         option(value=boardId2 selected=(currentBoardId === boardId2)) GoSprout Sprint Board
-      // Member selection dropdown
       select(name="memberId" onchange="updateURL('memberId', this.value)")
         option(value="") -- Select a Member --
         each member in allMembers
@@ -44,9 +41,10 @@ html
                     p Date of last activity: #{card.activityDate}
                     p Due Date: #{card.dueDate}
                     - const now = new Date();
-                    - const activityDate = new Date(card.activityDate);
-                    - const hoursOnList = Math.abs(now - activityDate) / 36e5;
-                    p Hours on List: #{hoursOnList.toFixed(2)}
+                    - const activityDate = card.activityDate ? new Date(card.activityDate) : null;
+                    - const hoursOnList = activityDate ? Math.abs(now - activityDate) / 36e5 : 'N/A';
+                    p Hours Since Last Active: #{hoursOnList.toFixed ? hoursOnList.toFixed(2) : 'N/A'}
+                    p Hours spent on previous list: #{card.hoursOnList}
             else
               p No cards found for this member
       else
