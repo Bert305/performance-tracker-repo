@@ -456,7 +456,7 @@ const getMetricsDetails = async (boardId) => {
         'To Do': 0,
         'In Progress': 0,
         'QA Review': 0,
-        'Done': 0
+        'DONE': 0
       },
       score: 0  // Initialize score
     }));
@@ -479,7 +479,7 @@ const getMetricsDetails = async (boardId) => {
           const listName = lists.find(list => list.id === card.idList)?.name;
           if (listName && memberMap[memberId].lists.hasOwnProperty(listName)) {
             memberMap[memberId].lists[listName]++;
-            if (listName === 'Done') {
+            if (listName === 'DONE') {
               memberMap[memberId].score += cardComplexity[card.id];  // Add complexity score to member's score
             }
           }

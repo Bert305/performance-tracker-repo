@@ -15,7 +15,7 @@ html
             th(scope='col') To Do
             th(scope='col') In Progress
             th(scope='col') QA Review
-            th(scope='col') Done
+            th(scope='col') DONE
             th(scope='col') Score
         tbody
           if members
@@ -27,7 +27,7 @@ html
                 td= member.lists['To Do'] || 0
                 td= member.lists['In Progress'] || 0
                 td= member.lists['QA Review'] || 0
-                td= member.lists['Done'] || 0
+                td= member.lists['DONE'] || 0
                 td= member.score
           else
             tr
