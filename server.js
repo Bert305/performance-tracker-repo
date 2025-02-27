@@ -445,9 +445,17 @@ app.get('/dashboard-pug', async (req, res) => {
 
 const getMetricsDetails = async (boardId) => {
   try {
-    const boardResponse = await axios.get(`https://api.trello.com/1/boards/${boardId}?cards=open&lists=open&members=all&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
-    const { cards, lists, members } = boardResponse.data;
+    // Fetch cards with complexity scores
+    const cardsWithComplexity = await processCardsWithComplexity(boardId);
 
+    // Fetch lists and members separately
+    const listResponse = await axios.get(`https://api.trello.com/1/boards/${boardId}/lists?cards=open&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    const lists = listResponse.data;
+
+    const memberResponse = await axios.get(`https://api.trello.com/1/boards/${boardId}/members?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}`);
+    const members = memberResponse.data;
+
+    // Initialize data structure for member details
     const memberDetails = members.map(member => ({
       id: member.id,
       username: member.fullName,
@@ -466,21 +474,22 @@ const getMetricsDetails = async (boardId) => {
       return acc;
     }, {});
 
-    // Example complexity values for cards
-    const cardComplexity = cards.reduce((acc, card) => {
-      acc[card.id] = Math.floor(Math.random() * 10) + 1;  // Simulate complexity score between 1-10
-      return acc;
-    }, {});
-
-    cards.forEach(card => {
+    // Process each card and update counts and scores
+    cardsWithComplexity.forEach(card => {
       card.idMembers.forEach(memberId => {
-        if (memberMap[memberId]) {
-          memberMap[memberId].totalCards++;
+        const member = memberMap[memberId];
+        if (member) {
+          member.totalCards++;
           const listName = lists.find(list => list.id === card.idList)?.name;
-          if (listName && memberMap[memberId].lists.hasOwnProperty(listName)) {
-            memberMap[memberId].lists[listName]++;
+          if (listName && member.lists.hasOwnProperty(listName)) {
+            member.lists[listName]++;
             if (listName === 'DONE') {
-              memberMap[memberId].score += cardComplexity[card.id];  // Add complexity score to member's score
+              const cardScore = parseFloat(card.complexity || 0); // Parse complexity, defaulting to 0 if undefined
+              member.score += cardScore;
+              // Optionally log cases where card complexity is missing or zero
+              if (cardScore === 0) {
+                console.log(`Card with ID ${card.id} in 'DONE' list has zero or undefined complexity.`);
+              }
             }
           }
         }
@@ -494,6 +503,7 @@ const getMetricsDetails = async (boardId) => {
     throw error;
   }
 };
+
 
 
 
