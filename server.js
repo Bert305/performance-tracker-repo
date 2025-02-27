@@ -257,13 +257,16 @@ const fetchCardsWithCustomFields = async (boardId) => {
   }
 };
 
-// Function to calculate time in list by hours
+const moment = require('moment-timezone');
+process.env.TZ = 'America/New_York'
+// Calculate time in list by hours, specifically for Eastern Time (New York)
 const getTimeInList2 = (entryTimestamp, exitTimestamp) => {
-  const entryDate = new Date(entryTimestamp);
-  const exitDate = new Date(exitTimestamp);
-  const duration = exitDate - entryDate; // duration in milliseconds
+  const entryDate = moment(entryTimestamp).tz('America/New_York');
+  const exitDate = moment(exitTimestamp).tz('America/New_York');
+  const duration = exitDate.diff(entryDate); // duration in milliseconds
   return (duration / 3600000).toFixed(2); // Converts milliseconds to hours
 };
+
 
 const processCardsWithComplexity = async (boardId) => {
   const cards = await fetchCardsWithCustomFields(boardId);
