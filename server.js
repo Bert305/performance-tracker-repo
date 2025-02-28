@@ -742,7 +742,7 @@ app.post('/trello-webhook', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card <strong>${cardName}</strong> moved from <strong>${fromList}</strong> board name <strong>${boardName}</strong>, to <strong>${toList}</strong> at ${timestamp}`;
+      const logMessageText = `Card ${cardName} moved from ${fromList} board name ${boardName}, to <strong>${toList} at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
@@ -799,7 +799,7 @@ app.post('/trello-webhook-GS', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card <strong>${cardName}</strong> moved from <strong>${fromList}</strong> board name <strong>${boardName}</strong>, to <strong>${toList}</strong> at ${timestamp}`;
+      const logMessageText = `Card ${cardName} moved from <strong>${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
@@ -857,7 +857,7 @@ app.post('/trello-webhook-Miami-EdTech-2', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card <strong>${cardName}</strong> moved from <strong>${fromList}</strong> board name <strong>${boardName}</strong>, to <strong>${toList}</strong> at ${timestamp}`;
+      const logMessageText = `Card ${cardName} moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
