@@ -469,18 +469,21 @@ const getMetricsDetails = async (boardId) => {
     const members = memberResponse.data;
 
     // Initialize data structure for member details
-    const memberDetails = members.map(member => ({
-      id: member.id,
-      username: member.fullName,
-      totalCards: 0,
-      lists: {
-        'To Do': 0,
-        'In Progress': 0,
-        'QA Review': 0,
-        'DONE': 0
-      },
-      score: 0  // Initialize score
-    }));
+    const memberDetails = members
+      .filter(member => member.fullName !== 'Carlos Vazquez') // Filter out Carlos Vazquez
+      .map(member => ({
+        id: member.id,
+        username: member.fullName,
+        totalCards: 0,
+        lists: {
+          'To Do': 0,
+          'In Progress': 0,
+          'QA Review': 0,
+          'DONE': 0
+        },
+        score: 0,  // Initialize score
+        estimates: { '1': 0, '3': 0, '5': 0, '8': 0 }  // Initialize estimates
+      }));
 
     const memberMap = memberDetails.reduce((acc, member) => {
       acc[member.id] = member;
@@ -498,7 +501,7 @@ const getMetricsDetails = async (boardId) => {
             member.lists[listName]++;
             if (listName === 'DONE') {
               const cardScore = parseFloat(card.complexity || 0); // Parse complexity, defaulting to 0 if undefined
-                member.score += cardScore * 10; // Update score based on complexity
+              member.score += cardScore * 10; // Update score based on complexity
               // Optionally log cases where card complexity is missing or zero
               if (cardScore === 0) {
                 console.log(`Card with ID ${card.id} in 'DONE' list has zero or undefined complexity.`);

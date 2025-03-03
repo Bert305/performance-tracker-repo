@@ -4,8 +4,39 @@ html
     title GoSprout Leaderboard
     meta(http-equiv="refresh" content="15")
     link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous")
+    style.
+      body {
+        background-color: #f8f9fa;
+      }
+      .container {
+        margin-top: 20px;
+      }
+      h1 {
+        color: #343a40;
+      }
+      select {
+        margin-bottom: 20px;
+      }
+      .card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+      }
+      .card-body {
+        background-color: #ffffff;
+      }
+      .card-title {
+        color: #495057;
+      }
+      p {
+        margin-bottom: 0.5rem;
+      }
   body
     .container.mt-4
+      // Dropdown for board selection
+      .mb-3
+        select.form-select
+          option(value="boardId1" selected=(currentBoardId === "boardId1")) Miami EdTech 2024-2025 Tracker
+          option(value="boardId2" selected=(currentBoardId === "boardId2")) GoSprout Sprint Board
       table.table.table-hover
         thead
           tr
@@ -37,5 +68,28 @@ html
           else
             tr
               td(colspan='9') No members found
+      // Estimates table
+      h2 Estimates
+      table.table.table-hover
+        thead
+          tr
+            th(scope='col') Teammates
+            th(scope='col') 1
+            th(scope='col') 3
+            th(scope='col') 5
+            th(scope='col') 8
+        tbody
+          if members
+            each member in members
+              tr
+                td= member.username
+                td= member.estimates['1'] || 0
+                td= member.estimates['3'] || 0
+                td= member.estimates['5'] || 0
+                td= member.estimates['8'] || 0
+          else
+            tr
+              td(colspan='5') No members found
+
 
 
