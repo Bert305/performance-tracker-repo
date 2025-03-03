@@ -742,7 +742,7 @@ app.post('/trello-webhook', async (req, res) => {
       const toList = action.data.listAfter.name;
       const boardName = action.data.board.name;
 
-      const logMessageText = `Card ${cardName} moved from ${fromList} board name ${boardName}, to <strong>${toList} at ${timestamp}`;
+      const logMessageText = `Card ${cardName} moved from ${fromList} board name ${boardName}, to ${toList} at ${timestamp}`;
       console.log(logMessageText);
       await logMessage(logMessageText);
 
