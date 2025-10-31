@@ -3,13 +3,18 @@
 
 <h1>Start Server: $npm start</h1>
 <p></p>
+<p>localhost:5000/login-pug</p>
+<p>localhost:5000/dashboard-pug</p>
+<p>localhost:5000/members-pug</p>
+<p>localhost:5000/logs</p>
+<p></p>
 <p>Project Documentation: <a href="https://docs.google.com/document/d/1MFo7BxPREnEaGTacnuZ0csPthNkpZpVIiZb6sHtwu2E/edit?tab=t.0">LINK</a></p>
 <br/>
 <hr/>
 <h1>What this does</h1>
-<p>As a user I can create an account, log in, and join a team.</p>
-<p>I can create tasks and assign metrics to calculate my performance</p>
-<p>As a user I can see the stats of my other team members as well</p>
+<p>As a user I can create an account, log in in order to render the Trello API data.</p>
+<p>I can filter in-between Trello boards to visually see the data of the Trello cards created</p>
+<p>As a user I can see board logs and the metrics of the data from Trello cards</p>
 <p></p>
 <p>Use Postman to create an account and send requests</p>
 <p></p>
